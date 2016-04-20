@@ -1,17 +1,17 @@
 class mainController {
 
-	render(template, route) {
-		var template = Handlebars.compile(template); 
+    render(template, route) {
+        var template = Handlebars.compile(template);
 
-		var data = {};
+        var data = {};
 
-		return template(data);
-	}
+        return template(data);
+    }
 
-	attach(route) {
+    attach(route) {
 
-	}
-	
+    }
+
 }
 
 App.current.controller = (new mainController());

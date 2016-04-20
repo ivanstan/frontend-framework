@@ -2,7 +2,7 @@ var gulp = require('gulp');
 var sass = require('gulp-sass');
 var concat = require('gulp-concat');
 
-gulp.task('styles', function() {
+gulp.task('styles', function () {
     gulp.src('module/**/style/*.scss')
         .pipe(sass().on('error', sass.logError))
         .pipe(concat('style.css'))
@@ -10,6 +10,6 @@ gulp.task('styles', function() {
 });
 
 //Watch task
-gulp.task('watch',function() {
-    gulp.watch('module/**/style/*.scss',['styles']);
+gulp.task('watch', function () {
+    gulp.watch('module/**/style/*.scss', ['styles']);
 });

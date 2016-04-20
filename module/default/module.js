@@ -1,12 +1,12 @@
 class defaultModule {
 
-	constructor() {
+    constructor() {
         this.settings = {};
     }
 
-	routingErrorHandler(route, jqXHR) {
-		console.log('Route not found.');
-	}
+    routingErrorHandler(route, jqXHR) {
+        console.log('Route not found.');
+    }
 
 }
 
