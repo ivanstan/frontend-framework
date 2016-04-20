@@ -1,6 +1,11 @@
-var defaultController = function() {
+var defaultController = {
 
+	render: function(template, route) {
+		return template;
+	},
 
-	return 'test';
+	attach: function(route) {
 
+	}
+	
 }
