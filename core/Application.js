@@ -21,9 +21,9 @@ class Application {
 			})
 			.done(function(controller, template, jqXHR){
 				_self.current.html = controller.render(template, route);
-				_self.current.ctrl = controller.attach(route);
-
 				jQuery(_self.settings.viewSelector).html(_self.current.html);
+				
+				_self.current.ctrl = controller.attach(route);
 			});
 		});
 	};
