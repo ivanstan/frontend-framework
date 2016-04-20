@@ -3,7 +3,7 @@ class Application {
 	constructor(settings) {
 		var _self = this;
 		_self.settings = settings;
-		_self.cache = localCache;
+		_self.cache = new Cache();
 		_self.modules = [];
 		_self.current = {};
 		
@@ -52,14 +52,14 @@ class Application {
 	}
 
 	getModule(name) {
-		var rval = false;
+		var result = false;
 		jQuery.each(this.modules, function(index, module){
 			if(module.name == name) {
-				rval = module;
+				result = module;
 			}
 		});
 
-		return rval;
+		return result;
 	}
 
 	getRoute() {

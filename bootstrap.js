@@ -2,7 +2,7 @@ var App = new Application({
 	modules: ['default'],
 	default: {
 		module: 'default',
-		controller: 'default',
+		controller: 'default'
 	},
-	viewSelector: '#container',
+	viewSelector: '#container'
 });
