@@ -1,11 +1,14 @@
-var defaultController = {
+class defaultController {
 
-	render: function(template, route) {
+	render(template, route) {
+
 		return template;
-	},
+	}
 
-	attach: function(route) {
+	attach(route) {
 
 	}
 	
 }
+
+App.current.controller = (new defaultController());

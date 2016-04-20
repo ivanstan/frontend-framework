@@ -1,6 +1,8 @@
 App.init({
-	'modules': ['default'],
-	'defaultModule': 'default',
-	'defaultController': 'default',
-	'viewSelector': '#container',
+	modules: ['default'],
+	default: {
+		module: 'default',
+		controller: 'default',
+	},
+	viewSelector: '#container',
 });

@@ -1,13 +1,13 @@
-var module = {
-	settings: {}
-};
+class defaultModule {
 
-module.init = function() {
-	console.log('Default module loaded.');
-};
+	constructor() {
+        this.settings = {};
+    }
 
-module.routingErrorHandler = function(route, jqXHR) {
+	routingErrorHandler(route, jqXHR) {
+		console.log('Route not found.');
+	}
 
 }
 
-App.modules.push(module);
+App.modules.push((new defaultModule()));

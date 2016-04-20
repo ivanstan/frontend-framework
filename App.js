@@ -1,6 +1,6 @@
 App = {
 	modules: [],
-	currentView: {}
+	current: {}
 };
 
 App.init = function(settings) {
@@ -8,8 +8,7 @@ App.init = function(settings) {
 	App.cache = localCache;
 	
 	App.loadModules().done(function(){
-		App.defaultModule = App.getModule(App.settings.defaultModule);
-		App.executeBehavior('init');
+		App.defaultModule = App.getModule(App.settings.default.module);
 		jQuery(window).trigger('hashchange');
 	});
 
@@ -21,10 +20,10 @@ App.init = function(settings) {
 			App.defaultModule.routingErrorHandler(route, jqXHR);
 		})
 		.done(function(controller, template, jqXHR){
-			App.currentView.html = controller.render(template, route);
-			App.currentView.ctrl = controller.attach(route);
+			App.current.html = controller.render(template, route);
+			App.current.ctrl = controller.attach(route);
 
-			jQuery(App.settings.viewSelector).html(App.currentView.html);
+			jQuery(App.settings.viewSelector).html(App.current.html);
 		});
 	});
 };
@@ -51,12 +50,6 @@ App.loadModules = function() {
 	return defer.promise();
 }
 
-App.executeBehavior = function(name) {
-	jQuery.each(App.modules, function(index, module){
-		module[name]();
-	});
-};
-
 App.getModule = function(name) {
 	var rval = false;
 	jQuery.each(App.modules, function(index, module){
@@ -75,8 +68,8 @@ App.getRoute = function() {
 	var pathname = uri[0].split('/');
 	var params = uri[1] ? uri[1].split('&') : [];
 
-	route.module = pathname[0] ? pathname[0] : App.settings.defaultModule;
-	route.controller = pathname[1] ? pathname[1] : App.settings.defaultController;
+	route.module = pathname[0] ? pathname[0] : App.settings.default.module;
+	route.controller = pathname[1] ? pathname[1] : App.settings.default.controller;
 	route.params = {};
 
     for(var i in params) {
@@ -90,44 +83,31 @@ App.getRoute = function() {
 
 App.navigate = function(route) {
 	var defer = $.Deferred();
-
-	var module = App.getModule(route.module);
 	var controllerFile = 'module/' + route.module + '/controller/' + route.controller + '.js';
 	var viewFile = 'module/' + route.module + '/view/' + route.controller + '.html';
 
-	jQuery.ajax({
-		url: controllerFile,
-		dataType: 'script',
-		cache: true,
-		success: function(source, textStatus, jqXHR) {
-			$.ajax({
-				url: viewFile,
-				cache: true,
-				dataType: 'html',
+	jQuery.getScript(controllerFile, function(source, textStatus, jqXHR) {
+		$.ajax({
+			url: viewFile,
+			dataType: 'html',
 
-				beforeSend: function () {
-	                if (App.cache.exist(viewFile)) {
-	                    var template = App.cache.get(viewFile);
-						var controller = window[route.controller + 'Controller'];
-						defer.resolve(controller, template, jqXHR);
-
-	                    return false;
-	                }
-	                return true;
-            	},
-				success: function(template, textStatus, jqXHR) {
-					var controller = window[route.controller + 'Controller'];
-					defer.resolve(controller, template, jqXHR);
-					App.cache.set(viewFile, template);
-				},
-				error: function(jqXHR, ajaxOptions, thrownError) {
-					defer.reject(jqXHR);
-				}
-			});
-		}, 		
-		error: function(jqXHR, ajaxOptions, thrownError) {
-			defer.reject(jqXHR);
-		}
+			beforeSend: function () {
+                if (App.cache.exist(viewFile)) {
+					defer.resolve(App.current.controller, App.cache.get(viewFile), jqXHR);
+                    return false;
+                }
+                return true;
+        	},
+			success: function(template, textStatus, jqXHR) {
+				defer.resolve(App.current.controller, template, jqXHR);
+				App.cache.set(viewFile, template);
+			},
+			error: function(jqXHR, ajaxOptions, thrownError) {
+				defer.reject(jqXHR);
+			}
+		});
+	}).fail(function(jqXHR, settings, exception){
+		console.log(exception);
 	});
 
 	return defer.promise();
