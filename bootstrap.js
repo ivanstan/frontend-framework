@@ -1,4 +1,4 @@
-App.init({
+var App = new Application({
 	modules: ['default'],
 	default: {
 		module: 'default',
