@@ -91,7 +91,6 @@ class Application {
         $.ajax({
             url: viewFile,
             dataType: 'html',
-
             beforeSend: function () {
                 if (_self.cache.exist(route.pathname)) {
                     var cache = _self.cache.get(route.pathname);
@@ -103,7 +102,6 @@ class Application {
                 return true;
             },
             success: function (template, textStatus, jqXHR) {
-
                 jQuery.getScript(controllerFile, function (source, textStatus, jqXHR) {
                     defer.resolve(_self.current.controller, template, jqXHR);
 
@@ -112,10 +110,9 @@ class Application {
                         controller: source
                     });
                 }).fail(function (jqXHR, settings, exception) {
-                    console.log(exception);
+                    defer.reject(jqXHR);
                 })
             },
-
             error: function (jqXHR, ajaxOptions, thrownError) {
                 defer.reject(jqXHR);
             }

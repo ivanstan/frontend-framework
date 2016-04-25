@@ -1,0 +1,24 @@
+{
+  "name": "frontend-framework",
+  "version": "1.0.0",
+  "description": "Frontend Framework",
+  "main": "Gulpfile.js",
+  "dependencies": {
+    "gulp": "^3.9.1",
+    "gulp-sass": "^2.3.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "gulp watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ivanstan/frontend-framework"
+  },
+  "author": "Ivan Stanojevic",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ivanstan/frontend-framework/issues"
+  },
+  "homepage": "https://github.com/ivanstan/frontend-framework"
+}
