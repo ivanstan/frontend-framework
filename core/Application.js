@@ -15,16 +15,7 @@ class Application {
         $(window).on('hashchange', function () {
             var route = _self.getRoute();
 
-            _self.navigate(route)
-                .fail(function (jqXHR) {
-                    _self.defaultModule.routingErrorHandler(route, jqXHR);
-                })
-                .done(function (controller, template, jqXHR) {
-                    _self.current.html = controller.render(template, route);
-                    jQuery(_self.settings.viewSelector).html(_self.current.html);
-
-                    _self.current.ctrl = controller.attach(route);
-                });
+            _self.navigate(route);
         });
     };
 
@@ -83,6 +74,25 @@ class Application {
     }
 
     navigate(route) {
+        var _self = this;
+
+        _self.executeController(route)
+        .fail(function (jqXHR) {
+
+            route.module = _self.settings.notfound.module;
+            route.controller = _self.settings.notfound.module;
+
+            _self.navigate(route);
+        })
+        .done(function (controller, template, jqXHR) {
+            _self.current.html = controller.render(template, route);
+            jQuery(_self.settings.viewSelector).html(_self.current.html);
+
+            _self.current.ctrl = controller.attach(route);
+        });
+    }
+
+    executeController(route) {
         var _self = this;
         var defer = $.Deferred();
         var controllerFile = 'module/' + route.module + '/controller/' + route.controller + '.js';

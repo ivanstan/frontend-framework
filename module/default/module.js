@@ -6,6 +6,8 @@ class defaultModule {
 
     routingErrorHandler(route, jqXHR) {
         console.log('Route not found.');
+
+        
     }
 
 }
