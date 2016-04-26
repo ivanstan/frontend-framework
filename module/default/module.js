@@ -7,4 +7,3 @@ class defaultModule {
 }
 
 window.classes['defaultModule'] = defaultModule;
-App.modules.push((new defaultModule()));

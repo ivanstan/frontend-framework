@@ -8,23 +8,23 @@ class Application {
         _self.current = {};
 
         _self.loadModules().done(function () {
-            _self.defaultModule = _self.getModule(_self.settings.default.module);
             jQuery(window).trigger('hashchange');
         });
 
-        $(window).on('hashchange', function () {
-            var route = _self.getRoute();
-            _self.navigate(route);
+        jQuery(window).on('hashchange', function () {
+            _self.navigate(_self.getRoute());
         });
     };
 
     loadModules() {
-        var defer = $.Deferred();
-        var _self = this;
+        var _self = this,
+            defer = jQuery.Deferred(),
+            modulesLoaded = 0;
 
-        var modulesLoaded = 0;
         jQuery.each(_self.settings.modules, function (index, moduleName) {
             jQuery.getScript('module/' + moduleName + '/module.js', function (data, textStatus, jqxhr) {
+                var module = window.classes[moduleName + 'Module'];
+                _self.modules.push((new module()));
                 _self.modules[_self.modules.length - 1].name = moduleName;
 
                 if (jqxhr.status !== 200) {
@@ -39,17 +39,6 @@ class Application {
         });
 
         return defer.promise();
-    }
-
-    getModule(name) {
-        var result = false;
-        jQuery.each(this.modules, function (index, module) {
-            if (module.name == name) {
-                result = module;
-            }
-        });
-
-        return result;
     }
 
     getRoute() {
@@ -107,7 +96,7 @@ class Application {
             controllerFile = 'module/' + route.module + '/controller/' + route.controller + '.js',
             viewFile = 'module/' + route.module + '/view/' + route.controller + '.html';
 
-        $.ajax({
+        jQuery.ajax({
             url: viewFile,
             dataType: 'html',
             success: function (template, textStatus, jqXHR) {
