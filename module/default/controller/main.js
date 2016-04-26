@@ -14,4 +14,4 @@ class mainController {
 
 }
 
-App.current.controller = (new mainController());
+window.classes['mainController'] = mainController;

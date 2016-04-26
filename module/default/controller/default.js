@@ -11,4 +11,4 @@ class defaultController {
 	
 }
 
-App.current.controller = (new defaultController());
+window.classes['defaultController'] = defaultController;

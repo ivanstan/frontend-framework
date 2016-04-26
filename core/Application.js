@@ -14,7 +14,6 @@ class Application {
 
         $(window).on('hashchange', function () {
             var route = _self.getRoute();
-
             _self.navigate(route);
         });
     };
@@ -55,7 +54,6 @@ class Application {
 
     getRoute() {
         var route = {};
-
         var uri = window.location.hash.substring(1).split('?');
         route.pathname = uri[0].split('/');
         var params = uri[1] ? uri[1].split('&') : [];
@@ -76,55 +74,52 @@ class Application {
     navigate(route) {
         var _self = this;
 
-        _self.executeController(route)
-        .fail(function (jqXHR) {
+        if(typeof window.classes[route.controller + 'Controller'] === 'function' && _self.cache.exist(route.pathname)) {
+            var controllerClass = window.classes[route.controller + 'Controller'];
+            var controller = new controllerClass();
+            var template = _self.cache.get(route.pathname);
+            var template = controller.render(template, route);
+            jQuery(_self.settings.viewSelector).html(template);
 
-            route.module = _self.settings.notfound.module;
-            route.controller = _self.settings.notfound.module;
+            _self.current.ctrl = controller.attach(route);
+        }
 
-            _self.navigate(route);
+        _self.loadController(route)
+        .fail(function (jqXHR, ajaxOptions, exception) {
+            _self.navigate({
+                module: _self.settings.notfound.module,
+                controller: _self.settings.notfound.module
+            });
         })
-        .done(function (controller, template, jqXHR) {
-            _self.current.html = controller.render(template, route);
-            jQuery(_self.settings.viewSelector).html(_self.current.html);
+        .done(function (template, route, jqXHR) {
+            var controllerClass = window.classes[route.controller + 'Controller'];
+            var controller = new controllerClass();
+            var template = controller.render(template, route);
+            jQuery(_self.settings.viewSelector).html(template);
 
             _self.current.ctrl = controller.attach(route);
         });
     }
 
-    executeController(route) {
-        var _self = this;
-        var defer = $.Deferred();
-        var controllerFile = 'module/' + route.module + '/controller/' + route.controller + '.js';
-        var viewFile = 'module/' + route.module + '/view/' + route.controller + '.html';
+    loadController(route) {
+        var _self = this,
+            defer = jQuery.Deferred(),
+            controllerFile = 'module/' + route.module + '/controller/' + route.controller + '.js',
+            viewFile = 'module/' + route.module + '/view/' + route.controller + '.html';
 
         $.ajax({
             url: viewFile,
             dataType: 'html',
-            beforeSend: function () {
-                if (_self.cache.exist(route.pathname)) {
-                    var cache = _self.cache.get(route.pathname);
-
-                    jQuery.globalEval(cache.controller);
-                    defer.resolve(App.current.controller, cache.template);
-                    return false;
-                }
-                return true;
-            },
             success: function (template, textStatus, jqXHR) {
                 jQuery.getScript(controllerFile, function (source, textStatus, jqXHR) {
-                    defer.resolve(_self.current.controller, template, jqXHR);
-
-                    _self.cache.set(route.pathname, {
-                        template: template,
-                        controller: source
-                    });
+                    defer.resolve(template, route, jqXHR);
+                    _self.cache.set(route.pathname, template);
                 }).fail(function (jqXHR, settings, exception) {
-                    defer.reject(jqXHR);
+                    defer.reject(jqXHR, settings, exception);
                 })
             },
-            error: function (jqXHR, ajaxOptions, thrownError) {
-                defer.reject(jqXHR);
+            error: function (jqXHR, ajaxOptions, exception) {
+                defer.reject(jqXHR, settings, exception);
             }
         });
 

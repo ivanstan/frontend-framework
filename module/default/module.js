@@ -4,12 +4,7 @@ class defaultModule {
         this.settings = {};
     }
 
-    routingErrorHandler(route, jqXHR) {
-        console.log('Route not found.');
-
-        
-    }
-
 }
 
+window.classes['defaultModule'] = defaultModule;
 App.modules.push((new defaultModule()));
