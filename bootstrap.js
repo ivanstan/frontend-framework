@@ -2,7 +2,7 @@
 window.classes = {};
 
 var App = new Application({
-    modules: ['default'],
+    modules: ['default', 'bootstrap'],
     viewSelector: '#container',
     default: {
         module: 'default',

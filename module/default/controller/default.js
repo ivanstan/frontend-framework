@@ -6,6 +6,13 @@ class defaultController {
 	}
 
 	attach(route) {
+		var ctrl = {};
+
+		ctrl.alert = jQuery('#alert-button').click(function(message){
+			alert('Test');
+		});
+
+		return ctrl;
 
 	}
 	
