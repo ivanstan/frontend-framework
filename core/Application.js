@@ -95,12 +95,18 @@ class Application {
         var _self = this,
             controller = new controllerClass();
 
-        controller.setTemplate(template);
-        controller.setRoute(route);
+        controller.async()
+            .done(function () {
+                controller.setTemplate(template);
+                controller.setRoute(route);
 
-        jQuery(_self.settings.viewSelector).html(controller.getTemplate());
+                jQuery(_self.settings.viewSelector).html(controller.getTemplate());
 
-        _self.current.ctrl = controller.attach();
+                _self.current.ctrl = controller.process();
+            })
+            .fail(function () {
+
+            });
     }
 
     loadController(route) {

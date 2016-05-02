@@ -13,7 +13,7 @@ class mainController extends Controller {
         return template(data);
     }
 
-    attach() {
+    process() {
 
     }
 

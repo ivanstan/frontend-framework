@@ -8,15 +8,21 @@ class defaultController extends Controller {
         return super.getTemplate();
     }
 
-    attach() {
+    process() {
         var ctrl = {};
 
-        ctrl.alert = jQuery('#alert-button').click(function (message) {
+        ctrl.alert = jQuery('#alert-button').click(function () {
             alert('Test');
         });
 
-        ctrl.sidebar = $("#menu-toggle").click(function (e) {
-            $("#wrapper").toggleClass("toggled");
+        ctrl.sidebar = jQuery('#menu-toggle').click(function () {
+            $('#wrapper').toggleClass('toggled');
+        });
+
+        ctrl.confirm = jQuery('#confirm-dialog').click(function () {
+            confirm('Press a button!', function (confirmed) {
+                console.log(confirmed);
+            });
         });
 
         return ctrl;

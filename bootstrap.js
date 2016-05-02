@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 window.classes = {};
 
 var App = new Application({
