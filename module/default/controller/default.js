@@ -1,21 +1,27 @@
-class defaultController {
+class defaultController extends Controller {
 
-	render(template, route) {
+    constructor() {
+        super();
+    }
 
-		return template;
-	}
+    getTemplate() {
+        return super.getTemplate();
+    }
 
-	attach(route) {
-		var ctrl = {};
+    attach() {
+        var ctrl = {};
 
-		ctrl.alert = jQuery('#alert-button').click(function(message){
-			alert('Test');
-		});
+        ctrl.alert = jQuery('#alert-button').click(function (message) {
+            alert('Test');
+        });
 
-		return ctrl;
+        ctrl.sidebar = $("#menu-toggle").click(function (e) {
+            $("#wrapper").toggleClass("toggled");
+        });
 
-	}
-	
+        return ctrl;
+    }
+
 }
 
 window.classes['defaultController'] = defaultController;

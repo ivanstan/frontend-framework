@@ -1,6 +1,11 @@
-class mainController {
+class mainController extends Controller {
 
-    render(template, route) {
+    constructor() {
+        super();
+    }
+
+    getTemplate() {
+        var template = super.getTemplate();
         var template = Handlebars.compile(template);
 
         var data = {};
@@ -8,7 +13,7 @@ class mainController {
         return template(data);
     }
 
-    attach(route) {
+    attach() {
 
     }
 

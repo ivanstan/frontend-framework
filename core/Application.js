@@ -24,7 +24,7 @@ class Application {
         jQuery.each(_self.settings.modules, function (index, moduleName) {
             jQuery.ajax({
                 url: 'module/' + moduleName + '/module.js',
-                success: function(source, textStatus, jqXHR) {
+                success: function (source, textStatus, jqXHR) {
 
                     var module = window.classes[moduleName + 'Module'];
                     _self.modules.push((new module()));
@@ -71,31 +71,36 @@ class Application {
     navigate(route) {
         var _self = this;
 
-        if(typeof window.classes[route.controller + 'Controller'] === 'function' && _self.cache.exist(route.pathname)) {
+        if (typeof window.classes[route.controller + 'Controller'] === 'function' && _self.cache.exist(route.pathname)) {
             var controllerClass = window.classes[route.controller + 'Controller'];
-            var controller = new controllerClass();
-            var template = _self.cache.get(route.pathname);
-            var template = controller.render(template, route);
-            jQuery(_self.settings.viewSelector).html(template);
 
-            _self.current.ctrl = controller.attach(route);
+            var template = _self.cache.get(route.pathname);
+            _self.executeController(controllerClass, template, route);
         }
 
         _self.loadController(route)
-        .fail(function (jqXHR, ajaxOptions, exception) {
-            _self.navigate({
-                module: _self.settings.notfound.module,
-                controller: _self.settings.notfound.module
+            .fail(function (jqXHR, ajaxOptions, exception) {
+                _self.navigate({
+                    module: _self.settings.notfound.module,
+                    controller: _self.settings.notfound.module
+                });
+            })
+            .done(function (template, jqXHR) {
+                var controllerClass = window.classes[route.controller + 'Controller'];
+                _self.executeController(controllerClass, template, route);
             });
-        })
-        .done(function (template, jqXHR) {
-            var controllerClass = window.classes[route.controller + 'Controller'];
-            var controller = new controllerClass();
-            var template = controller.render(template);
-            jQuery(_self.settings.viewSelector).html(template);
+    }
 
-            _self.current.ctrl = controller.attach(route);
-        });
+    executeController(controllerClass, template, route) {
+        var _self = this,
+            controller = new controllerClass();
+
+        controller.setTemplate(template);
+        controller.setRoute(route);
+
+        jQuery(_self.settings.viewSelector).html(controller.getTemplate());
+
+        _self.current.ctrl = controller.attach();
     }
 
     loadController(route) {
@@ -109,7 +114,7 @@ class Application {
             success: function (template, textStatus, jqXHR) {
                 jQuery.ajax({
                     url: controllerFile,
-                    success: function(source, textStatus, jqXHR) {
+                    success: function (source, textStatus, jqXHR) {
                         jQuery.globalEval(source);
                         defer.resolve(template, route, jqXHR);
                         _self.cache.set(route.pathname, template);
