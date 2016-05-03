@@ -34,4 +34,19 @@ class Controller {
         this.route = route;
     }
 
+    /**
+     * Template is loaded. Use this method to attach event handlers.
+     */
+    assign() {
+
+    }
+
+    /**
+     * Called when controller another controller is called. Event handlers will be detached automatically,
+     * use this method to cleanup additional elements added on page.
+     */
+    resign() {
+
+    }
+
 }

@@ -6,14 +6,14 @@ class mainController extends Controller {
 
     getTemplate() {
         var template = super.getTemplate();
-        var template = Handlebars.compile(template);
+        template = Handlebars.compile(template);
 
         var data = {};
 
         return template(data);
     }
 
-    process() {
+    assign() {
 
     }
 

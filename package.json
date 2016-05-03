@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "description": "Frontend Framework",
   "main": "Gulpfile.js",
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.0",
     "gulp-sass": "^2.3.1"
   },
-  "devDependencies": {},
   "scripts": {
-    "test": "gulp watch"
+    "test": "gulp test"
   },
   "repository": {
     "type": "git",

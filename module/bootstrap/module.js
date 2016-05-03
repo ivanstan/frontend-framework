@@ -43,9 +43,9 @@ $(document).ajaxError(function () {
 });
 
 $(document).ajaxStart(function () {
-
+    jQuery('#ajax-loader').show();
 });
 
 $(document).ajaxComplete(function () {
-
+    jQuery('#ajax-loader').hide();
 });

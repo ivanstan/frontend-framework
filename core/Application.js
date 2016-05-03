@@ -76,18 +76,17 @@ class Application {
 
             var template = _self.cache.get(route.pathname);
             _self.executeController(controllerClass, template, route);
+            return route;
         }
-
         _self.loadController(route)
             .fail(function (jqXHR, ajaxOptions, exception) {
-                _self.navigate({
-                    module: _self.settings.notfound.module,
-                    controller: _self.settings.notfound.module
-                });
+                _self.navigate(_self.settings.notfound);
+                return _self.settings.notfound;
             })
             .done(function (template, jqXHR) {
                 var controllerClass = window.classes[route.controller + 'Controller'];
                 _self.executeController(controllerClass, template, route);
+                return route;
             });
     }
 
@@ -97,12 +96,17 @@ class Application {
 
         controller.async()
             .done(function () {
+                if(typeof _self.current.controller !== 'undefined') {
+                    _self.current.controller.resign();
+                }
+
                 controller.setTemplate(template);
                 controller.setRoute(route);
 
                 jQuery(_self.settings.viewSelector).html(controller.getTemplate());
 
-                _self.current.ctrl = controller.process();
+                _self.current.assign = controller.assign();
+                _self.current.controller = controller;
             })
             .fail(function () {
 
