@@ -111,16 +111,7 @@ exports.getConfig = function () {
                 ]
             }, {
                 name: 'framework',
-                js: [
-                    'core/Util.js',
-                    'core/Module.js',
-                    'core/Storage.js',
-                    'core/Route.js',
-                    'core/Application.js',
-                    'core/Controller.js',
-                    'core/Exception.js',
-                    'core/AjaxException.js'
-                ]
+                js: ['vendor/frontend-framework/frontend-framework.js']
             }, {
                 name: 'application',
                 dependencies: ['framework'],

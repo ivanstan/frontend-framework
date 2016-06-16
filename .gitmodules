@@ -1,3 +1,6 @@
 [submodule "module/default/component/compass-component"]
 	path = module/default/component/compass-component
 	url = https://github.com/ivanstan/compass-component
+[submodule "vendor/frontend-framework"]
+	path = vendor/frontend-framework
+	url = https://github.com/ivanstan/frontend-framework
