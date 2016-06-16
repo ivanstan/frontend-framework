@@ -40,7 +40,17 @@ gulp.task('js', function () {
 });
 
 gulp.task('framework', function () {
-    gulp.src('core/*.js')
+
+    gulp.src([
+            'core/Util.js',
+            'core/Exception.js',
+            'core/AjaxException.js',
+            'core/Module.js',
+            'core/Controller.js',
+            'core/Route.js',
+            'core/Storage.js',
+            'core/Application.js'
+        ])
         .pipe(concat('frontend-framework.js'))
         .pipe(gulp.dest('./'));
 });
