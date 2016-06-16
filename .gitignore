@@ -1,3 +1,6 @@
 .idea
 node_modules
+.github-todos
 npm-debug.log
+assets/javascript.js
+assets/styles.css

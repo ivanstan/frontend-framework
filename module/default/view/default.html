@@ -1,92 +1,54 @@
-<div id='wrapper'>
-    <!-- Sidebar -->
-    <div id='sidebar-wrapper'>
-        <ul class='sidebar-nav'>
-            <li class='sidebar-brand'>
-                <a href='#'>
-                    Start Bootstrap
-                </a>
-            </li>
-            <li>
-                <a href='#'>Dashboard</a>
-            </li>
-            <li>
-                <a href='#'>Shortcuts</a>
-            </li>
-            <li>
-                <a href='#'>Overview</a>
-            </li>
-            <li>
-                <a href='#'>Events</a>
-            </li>
-            <li>
-                <a href='#'>About</a>
-            </li>
-            <li>
-                <a href='#'>Services</a>
-            </li>
-            <li>
-                <a href='#'>Contact</a>
-            </li>
-        </ul>
-    </div>
-    <!-- /#sidebar-wrapper -->
+<script src="../controller/DefaultController.js"></script>
 
+<link rel="import" href="../component/satellite-select/template.html">
+<link rel="import" href="../component/tle-display/template.html">
+<link rel="import" href="../component/compass-component/template.html">
 
-    <!-- Page Content -->
-    <div id='page-content-wrapper'>
+<template>
 
-            <div class='row'>
-                <div class='col-lg-12'>
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <ul class="sidebar-nav">
+                <li class="sidebar-brand"><a href="#">Start Bootstrap</a></li>
+                <li><a href="#default/default">Default</a></li>
+                <li><a href="#default/main">Main</a></li>
+                <li><a href="#default/design">Design</a></li>
+            </ul>
+        </div><!-- /#sidebar-wrapper -->
 
-                    <!-- Nav tabs -->
-                    <ul class='nav nav-tabs ' role='tablist'>
-                        <li class='nav-item'>
-                            <a class='nav-link active' data-toggle='tab' href='#home' role='tab'>Home</a>
-                        </li>
-                        <li class='nav-item'>
-                            <a class='nav-link' data-toggle='tab' href='#profile' role='tab'>Profile</a>
-                        </li>
-                        <li class='nav-item'>
-                            <a class='nav-link' data-toggle='tab' href='#messages' role='tab'>Messages</a>
-                        </li>
-                        <li class='nav-item'>
-                            <a class='nav-link' data-toggle='tab' href='#settings' role='tab'>Settings</a>
-                        </li>
-                    </ul>
+        <div id="page-content-wrapper">
 
-                    <!-- Tab panes -->
-                    <div class='tab-content'>
-                        <div class='tab-pane active' id='home' role='tabpanel'>
+            <!-- Tab panes -->
+            <div class="tab-content">
+                <div class="tab-pane active" id="dashboard-tab" role="tabpanel">
+                    <div class="#map-link"></div>
+                </div>
+                <div class="tab-pane" id="map-tab" role="tabpanel">
+                    <div id="map"></div>
+                </div>
+                <div class="tab-pane" id="sky-tab" role="tabpanel">
+                    <div id="sky"></div>
+                </div>
+                <div class="tab-pane" id="earth-tab" role="tabpanel">
+                    <div id="earth"></div>
+                </div>
+                <div class="tab-pane" id="settings-tab" role="tabpanel">
+                    <div class="container-page">
 
-                            <h1>Index.js</h1>
+                        <form>
+                            <satellite-select
+                                    data-api-url="http://dev.byteout.com/astrodynamics/astrodynamics/web/app_dev.php"></satellite-select>
+                        </form>
 
-                            <h2>ECMA6 MVC Framework</h2>
+                        <a href="#default/tle"><i class="fa fa-file-o" aria-hidden="true"></i>Documentation</a>
 
-                            <a href='#default/main'>Goto main</a>
+                        <!--<div id="chart-accelerometer"></div>-->
 
-                            <p>This template has a responsive menu toggling system. The menu will appear collapsed on
-                                smaller
-                                screens, and will appear non-collapsed on larger screens. When toggled using the button
-                                below,
-                                the menu will appear/disappear. On small screens, the page content will be pushed off
-                                canvas.</p>
-                            <p>Make sure to keep all page content within the <code>#page-content-wrapper</code>.</p>
-
-                            <button class='btn btn-default' id='alert-button'>Alert</button>
-                            <button class='btn btn-default' id='confirm-dialog'>Confirm</button>
-                            <button class='btn btn-default' id='toastr-test'>Toastr</button>
-                        </div>
-                        <div class='tab-pane' id='profile' role='tabpanel'>...</div>
-                        <div class='tab-pane' id='messages' role='tabpanel'>...</div>
-                        <div class='tab-pane' id='settings' role='tabpanel'>...</div>
                     </div>
-
-
-
                 </div>
             </div>
 
-    </div>
-    <!-- /#page-content-wrapper -->
-</div>
+        </div><!-- /#page-content-wrapper -->
+    </div><!-- /#wrapper -->
+</template>

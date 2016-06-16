@@ -99,7 +99,6 @@ button.toast-close-button {
     margin: 0 0 6px;
     padding: 15px 15px 15px 50px;
     width: 300px;
-    @include border-radius($border-radius);
     background-position: 15px center;
     background-repeat: no-repeat;
     color: #ffffff;
@@ -107,6 +106,13 @@ button.toast-close-button {
     -ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=80);
     filter: alpha(opacity=80);
 }
+
+@if $enable-rounded {
+    #toast-container > div {
+        @include border-radius($border-radius);
+    }
+}
+
 #toast-container > :hover {
     opacity: 1;
     -ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);

@@ -1,0 +1,31 @@
+<script src="controller.js"></script>
+
+<template>
+    <style>
+        @import "assets/styles.css";
+
+        .tle-decode {
+            color: #0275d8;
+            cursor: pointer;
+        }
+
+    </style>
+    <div id='satellite-search' class='input-group form-group'>
+        <span class='input-group-addon'>
+            <i class='fa fa-globe' aria-hidden='true'></i>
+        </span>
+        <input class='typeahead form-control' type='text' placeholder='NORAD Catalog'>
+    </div>
+    <table class="table table-striped table-hover">
+        <thead class="thead-default">
+        <tr>
+            <th></th>
+            <th>Name</th>
+            <th>TLE</th>
+            <th>Operation</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</template>

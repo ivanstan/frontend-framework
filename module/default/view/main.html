@@ -1,3 +1,23 @@
-<h1>Oops...</h1>
+<script src="../controller/MainController.js"></script>
+<link rel="import" href="../component/compass-component/template.html">
 
-<a href='#default/default'>Goto default</a>
+<template>
+    <h1>Oops...</h1>
+
+    1. Try loging non existing module
+    2. Try loading module with error in module file
+    3. Try loading non existing controller
+    4. Try loading module with error in controller file
+    5. Try loading controller with non existing template
+    6. Try loading 403
+    7. Try internal server error
+
+    <a href="#default/default">Goto default</a>
+
+    <!--<div id="chart" style=:height:500px:>-->
+        <!--<svg />-->
+    <!--</div>-->
+
+    <compass-view azimuth="352" radius="100"></compass-view>
+
+</template>

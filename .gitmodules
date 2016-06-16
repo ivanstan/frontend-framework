@@ -1,0 +1,3 @@
+[submodule "module/default/component/compass-component"]
+	path = module/default/component/compass-component
+	url = https://github.com/ivanstan/compass-component

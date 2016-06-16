@@ -1,9 +1,38 @@
 class Controller {
 
     constructor() {
-        this.defer = jQuery.Deferred();
-        this.template = '';
-        this.route = {};
+        this._defer = $.Deferred();
+        this._template = '';
+        this._route = {};
+        this._settings = {};
+    }
+
+    get deferred() {
+        return this._defer;
+    }
+
+    get template() {
+        return this._template;
+    }
+
+    set template(template) {
+        this._template = template;
+    }
+
+    get route() {
+        return this._route;
+    }
+
+    set route(route) {
+        this._route = route;
+    }
+
+    set settings(settings) {
+        this._settings = settings;
+    }
+
+    get settings() {
+        return this._settings;
     }
 
     /**
@@ -14,24 +43,8 @@ class Controller {
      * @returns Defer promise
      */
     async() {
-        this.defer.resolve();
-        return this.defer.promise();
-    }
-
-    getTemplate() {
-        return this.template;
-    }
-
-    setTemplate(template) {
-        this.template = template;
-    }
-
-    getRoute() {
-        return this.route;
-    }
-
-    setRoute(route) {
-        this.route = route;
+        this._defer.resolve();
+        return this._defer.promise();
     }
 
     /**

@@ -1,3 +1,68 @@
-header {
-  height: 54px;
+@import "../../vendor/bootstrap/scss/bootstrap.scss";
+@import "../../vendor/mixins.scss";
+
+.container-page {
+  padding: $spacer;
 }
+
+.nav-tabs-top {
+  display: inline-block;
+
+  li {
+    display: inline-block;
+    padding: 0 $spacer;
+    a {
+      color: $gray-light;
+      &.active {
+        color: $gray-lighter;
+      }
+    }
+  }
+}
+
+.default-default-page {
+  #page-content-wrapper .tab-content {
+    overflow: hidden;
+  }
+
+  #map-tab,
+  #sky-tab {
+    background-color: #3646a7;
+  }
+
+  #earth-tab {
+    background-color: #263174;
+  }
+
+  #map {
+    max-width: none;
+
+    img {
+      max-width: none !important;
+    }
+
+    a[href^="http://maps.google.com/maps"] {
+      display: none !important
+    }
+    a[href^="https://maps.google.com/maps"] {
+      display: none !important
+    }
+
+    .gmnoprint a, .gmnoprint span, .gm-style-cc {
+      display: none;
+    }
+    .gmnoprint div {
+      background: none !important;
+    }
+  }
+}
+
+.default-design-page {
+  .color-line {
+    width: 100%;
+    height: 3px;
+    margin: 10px 0;
+  }
+}
+
+

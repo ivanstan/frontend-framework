@@ -1,145 +1,186 @@
 class Application {
 
     constructor(settings) {
-        var _self = this;
-        _self.settings = settings;
-        _self.cache = new Cache();
-        _self.modules = [];
-        _self.current = {};
+        this.settings = settings;
+        this.modules = {};
+        this.current = {};
 
-        _self.loadModules().done(function () {
-            jQuery(window).trigger('hashchange');
-        });
+        this.loadModules()
+            .done(() => {
+                $(window).trigger('hashchange');
+            })
+            .fail((jqXHR, textStatus, errorThrown) => {
 
-        jQuery(window).on('hashchange', function () {
-            _self.navigate(_self.getRoute());
+                let exception = AjaxException.create('Error loading modules')
+                    .setJqXHR(jqXHR)
+                    .setTextStatus(textStatus)
+                    .setErrorThrown(errorThrown);
+
+                Application.errorHandler(exception);
+            });
+
+        $(window).on('hashchange', () => {
+            this.navigate(new Route(window.location.hash));
         });
     };
 
     loadModules() {
-        var _self = this,
-            defer = jQuery.Deferred(),
-            modulesLoaded = 0;
+        var defer = $.Deferred();
 
-        jQuery.each(_self.settings.modules, function (index, moduleName) {
-            jQuery.ajax({
-                url: 'module/' + moduleName + '/module.js',
-                success: function (source, textStatus, jqXHR) {
+        for (var i in this.settings.modules) {
+            var moduleName = this.settings.modules[i];
+            var moduleClassName = Util.capitalize(moduleName) + 'Module';
 
-                    var module = window.classes[moduleName + 'Module'];
-                    _self.modules.push((new module()));
-                    _self.modules[_self.modules.length - 1].name = moduleName;
+            $.ajax({
+                url: 'module/' + moduleName + '/' + moduleClassName + '.js',
+                success: (source, textStatus, jqXHR) => {
+                    var moduleClass = window.classes[moduleClassName];
 
-                    if (jqXHR.status !== 200) {
-                        defer.reject();
+                    if (typeof moduleClass !== 'undefined') {
+                        var module = new moduleClass();
+
+                        this.modules[moduleName] = module;
+
+                        this.settings['modules'][moduleName] = module.settings;
+                        this.settings['modules'].splice(this.settings['modules'].indexOf(moduleName), 1);
+
+                        if (jqXHR.status !== 200) {
+                            defer.reject(jqXHR, textStatus, 'Error loading ' + moduleClassName);
+                        }
+
+                        if (i == this.settings.modules.length) {
+                            defer.resolve();
+                        }
                     }
 
-                    modulesLoaded++;
-                    if (modulesLoaded == _self.settings.modules.length) {
-                        defer.resolve();
-                    }
+
                 },
-                error: function (jqXHR, ajaxOptions, exception) {
-                    defer.reject();
+                error: (jqXHR, textStatus, errorThrown) => {
+                    defer.reject(jqXHR, textStatus, errorThrown);
                 }
             });
-        });
+        }
 
         return defer.promise();
     }
 
-    getRoute() {
-        var route = {};
-        var uri = window.location.hash.substring(1).split('?');
-        route.pathname = uri[0].split('/');
-        var params = uri[1] ? uri[1].split('&') : [];
-
-        route.module = route.pathname[0] ? route.pathname[0] : this.settings.default.module;
-        route.controller = route.pathname[1] ? route.pathname[1] : this.settings.default.controller;
-        route.pathname = uri[0];
-        route.params = {};
-
-        for (var i in params) {
-            var nv = params[i].split('=');
-            if (!nv[0]) continue;
-            route.params[nv[0]] = nv[1] || true;
-        }
-
-        return route;
-    }
-
     navigate(route) {
-        var _self = this;
+        this.loadController(route)
+            .fail((jqXHR, textStatus, errorThrown) => {
 
-        if (typeof window.classes[route.controller + 'Controller'] === 'function' && _self.cache.exist(route.pathname)) {
-            var controllerClass = window.classes[route.controller + 'Controller'];
+                let exception = AjaxException.create(errorThrown)
+                    .setJqXHR(jqXHR)
+                    .setTextStatus(textStatus)
+                    .setErrorThrown(errorThrown)
+                    .setRoute(route);
 
-            var template = _self.cache.get(route.pathname);
-            _self.executeController(controllerClass, template, route);
-            return route;
-        }
-        _self.loadController(route)
-            .fail(function (jqXHR, ajaxOptions, exception) {
-                _self.navigate(_self.settings.notfound);
-                return _self.settings.notfound;
+                Application.errorHandler(exception);
+                return null;
             })
-            .done(function (template, jqXHR) {
-                var controllerClass = window.classes[route.controller + 'Controller'];
-                _self.executeController(controllerClass, template, route);
+            .done((template) => {
+                let controllerClass = window.classes[route.controllerClassName];
+
+                if (typeof controllerClass == 'undefined') {
+                    Util.notification('error', 'State controller missing' + route.controllerClassName);
+                }
+
+                var controller = new controllerClass();
+
+                controller.settings = this.settings;
+                controller.template = template;
+                controller.route = route;
+
+                controller.async(controller.deferred)
+                    .always(() => {
+                        // call resign of previous controller
+                        if (typeof this.current.controller !== 'undefined') {
+                            this.current.controller.resign();
+                        }
+
+                        let view = $(this.settings.viewSelector);
+
+                        view.html(controller.template);
+                        view.attr('class', route.pathname.replace('/', '-') + '-page');
+
+                        this.current.assign = controller.assign();
+                        this.current.controller = controller;
+                        this.hook('postRender');
+                    });
+
+
                 return route;
             });
     }
 
-    executeController(controllerClass, template, route) {
-        var _self = this,
-            controller = new controllerClass();
-
-        controller.async()
-            .done(function () {
-                if(typeof _self.current.controller !== 'undefined') {
-                    _self.current.controller.resign();
-                }
-
-                controller.setTemplate(template);
-                controller.setRoute(route);
-
-                jQuery(_self.settings.viewSelector).html(controller.getTemplate());
-
-                _self.current.assign = controller.assign();
-                _self.current.controller = controller;
-            })
-            .fail(function () {
-
-            });
-    }
-
     loadController(route) {
-        var _self = this,
-            defer = jQuery.Deferred(),
-            controllerFile = 'module/' + route.module + '/controller/' + route.controller + '.js',
+        var defer = $.Deferred(),
             viewFile = 'module/' + route.module + '/view/' + route.controller + '.html';
 
-        jQuery.ajax({
-            url: viewFile,
-            success: function (template, textStatus, jqXHR) {
-                jQuery.ajax({
-                    url: controllerFile,
-                    success: function (source, textStatus, jqXHR) {
-                        jQuery.globalEval(source);
-                        defer.resolve(template, route, jqXHR);
-                        _self.cache.set(route.pathname, template);
-                    },
-                    error: function (jqXHR, ajaxOptions, exception) {
-                        defer.reject(jqXHR, settings, exception);
-                    }
-                });
-            },
-            error: function (jqXHR, ajaxOptions, exception) {
-                defer.reject(jqXHR, settings, exception);
-            }
-        });
+        this.importHtml(viewFile)
+            .done((link) => {
+                var template = Util.link2html(link);
+
+                if (template == false) {
+                    Util.notification('error', 'File ' + viewFile + ' is not template');
+                    defer.reject();
+                }
+
+                defer.resolve(template);
+            })
+            .fail(() => {
+                Util.notification('error', 'Error loading ' + viewFile);
+            });
 
         return defer.promise();
     }
-} 
 
+    importHtml(href) {
+        var defer = $.Deferred(),
+            link = $('head [href="' + href + '"]');
+
+        // ToDo: Check if this if can be avoided
+        if (link.length > 0) {
+            defer.resolve(link);
+            return defer.promise();
+        }
+
+        var link = document.createElement('link');
+        link.rel = 'import';
+        link.href = href;
+        link.setAttribute('async', '');
+        link.onload = (event) => {
+            defer.resolve($(link));
+        };
+        link.onerror = (event) => {
+            Util.notification('error', 'Unable to load: ' + href);
+            defer.reject(event);
+        };
+
+        $('head').append($(link));
+
+        return defer.promise();
+    }
+
+    hook(hookName) {
+        for (let i in this.modules) {
+            let module = this.modules[i];
+
+            if (typeof module[hookName] === 'function') {
+                try {
+                    module[hookName]();
+                } catch (exception) {
+                    Util.notification('error', exception, 'Exception');
+                }
+            }
+        }
+    }
+
+    static errorHandler(exception) {
+        exception.processError();
+
+        Util.notification('error', exception.getTitle(), exception.getMessage());
+
+        console.log(exception);
+    }
+
+}
