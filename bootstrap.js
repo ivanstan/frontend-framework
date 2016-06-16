@@ -14,16 +14,16 @@ exports.getConfig = function () {
                     'core/Util.js',
                     'core/Exception.js',
                     'core/AjaxException.js',
-                    'core/Storage.js',
-                    'core/Route.js',
                     'core/Module.js',
                     'core/Controller.js',
+                    'core/Route.js',
+                    'core/Storage.js',
                     'core/Application.js'
                 ]
             }, {
                 name: 'application',
                 dependencies: ['framework'],
-                scss: ['module/example/styles.scss',],
+                scss: ['module/example/styles.scss'],
                 js: ['bootstrap.js']
             }
         ]

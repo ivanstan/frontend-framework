@@ -12,4 +12,11 @@ class Module {
         this._settings = settings;
     }
 
+    /**
+     * Hook called once state rendering is complete.
+     */
+    postRender() {
+
+    }
+
 }

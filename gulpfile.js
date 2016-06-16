@@ -7,12 +7,14 @@ var gulp = require('gulp'),
     cleanCSS = require('gulp-clean-css'),
     rename = require('gulp-rename'),
     inject = require('gulp-inject'),
+    packageJson = require('./package.json'),
     bootstrap = require('./bootstrap.js'),
-    nodeFrm = require('./core/NodeFramework.js'),
-    config = bootstrap.getConfig(),
-    libs = nodeFrm.resolveDependencies(config['libs'], 'dependencies'),
+    NodeFramework = require('./core/NodeFramework.js'),
     sourceJs = [],
     sourceScss = [];
+
+NodeFramework.setConfig(bootstrap.getConfig());
+var libs = NodeFramework.resolveDependencies('dependencies');
 
 for (var i in libs) {
 
@@ -40,20 +42,9 @@ gulp.task('js', function () {
 });
 
 gulp.task('framework', function () {
-
-    gulp.src([
-            'core/Util.js',
-            'core/Exception.js',
-            'core/AjaxException.js',
-            'core/Module.js',
-            'core/Controller.js',
-            'core/Route.js',
-            'core/Storage.js',
-            'core/Application.js'
-        ])
-        .pipe(concat('frontend-framework.js'))
+    gulp.src(NodeFramework.getLibrary('framework'))
+        .pipe(concat('frontend-framework-' + packageJson.version + '.js'))
         .pipe(gulp.dest('./build'));
-
 });
 
 gulp.task('development', function () {
@@ -79,7 +70,7 @@ gulp.task('production', function () {
 });
 
 gulp.task('build', function () {
-    gulp.start(['styles', 'js', 'development', 'production']);
+    gulp.start(['styles', 'js', 'framework', 'development', 'production']);
 });
 
 gulp.task('watch', function () {

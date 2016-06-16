@@ -1,6 +1,12 @@
 module.exports = {
-    resolveDependencies: function (array, key) {
-        var sorted = [], resolved = [];
+
+    setConfig: function (settings) {
+        this.settings = settings;
+    },
+
+    resolveDependencies: function (key) {
+        var sorted = [],
+            resolved = [];
 
         function arrayFromKey(array, key) {
             var rval = [];
@@ -21,16 +27,27 @@ module.exports = {
             return true;
         }
 
-        while (array.length > 0) {
-            for (var i in array) {
-                if (canResolve(array[i], resolved)) {
-                    sorted.push(array[i]);
-                    array.splice(i, 1);
+        while (this.settings.libs.length > 0) {
+            for (var i in this.settings.libs) {
+                if (canResolve(this.settings.libs[i], resolved)) {
+                    sorted.push(this.settings.libs[i]);
+                    this.settings.libs.splice(i, 1);
                     resolved = arrayFromKey(sorted, 'name');
                 }
             }
         }
 
         return sorted;
+    },
+
+    getLibrary: function (name) {
+
+        console.log(this.settings);
+
+        for (var i in this.settings.libs) {
+            if(this.settings.libs[i].name == name) {
+                return this.settings.libs[i].name;
+            }
+        }
     }
 };

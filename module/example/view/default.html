@@ -1,7 +1,212 @@
 <script src="../controller/DefaultController.js"></script>
 
 <template>
+    <div class="container">
+        <div class="row">
 
-    asd
+            <div class="jumbotron" style="margin-top: 15px">
+                <h1 class="display-3">Hello, ECMA6!</h1>
+                <p class="lead">This tutorial will lead you trough basics of frontend framework usage.</p>
+                <hr class="m-y-2">
+                <p>Lightweight and robust ECMA6 frontend framework, architectured on MVC pattern and resting on webcomponents.</p>
+            </div>
+        </div>
 
+        <h2>Routing</h2>
+        <p>
+            Application resources are organized in states which are routed in scheme <span class="url">#module-name/state-name</span>
+            Here is an example url which will navigate to state bar inside foo module:
+            <span class="url">https://example.com/application/#foo/bar</span>
+        </p>
+
+        <h2>Directory structure</h2>
+        <table class="table">
+            <tbody>
+            <tr>
+                <td width="160px"><i class="fa fa-folder-open" aria-hidden="true"></i> assets</td>
+                <td>Assets folder should contain images, fonts, and everything else that is not JavaScript or
+                    stylesheet.
+                    Built versions of JavaScripts and sass files will be stored here. Assets folder also holds
+                    index.html which
+                    is template into which assets will be injected and later used for building index.html and
+                    index-dev.html files
+                    in the root of project.
+                </td>
+            </tr>
+            <tr>
+                <td><i class="fa fa-folder-open" aria-hidden="true"></i> build</td>
+                <td>Framework will be built here into single file.</td>
+            </tr>
+            <tr>
+                <td><i class="fa fa-folder-open" aria-hidden="true"></i> core</td>
+                <td>Core of the framework, not intended to be modified by end developer.</td>
+            </tr>
+            <tr>
+                <td><i class="fa fa-folder-open" aria-hidden="true"></i> module</td>
+                <td>This is where all your code should go, organized in modules</td>
+            </tr>
+            <tr>
+                <td><i class="fa fa-folder-open" aria-hidden="true"></i> tests</td>
+                <td>Framework tests, running on Karma and Jasmine.</td>
+            </tr>
+            <tr>
+                <td><i class="fa fa-folder-open" aria-hidden="true"></i> vendor</td>
+                <td>Place where 3rd party dependencies should hang out, unless they are somewhere on cdn.</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h2>Configuration</h2>
+        <p>
+            Application is intended to be configured in bootstrap.js file. Configuration object is returned by <code>getConfig()</code>
+            method. Bellow is the overview of configuration object:
+        </p>
+        <table class="table">
+            <tbody>
+            <tr>
+                <td><code>modules</code></td>
+                <td width="160px"><code>['foo', 'test']</code></td>
+                <td>Array of modules that exist in application. This names should match the folder names in moduel
+                    folder.
+                </td>
+            </tr>
+            <tr>
+                <td><code>viewSelector</code></td>
+                <td><code>'#container'</code></td>
+                <td>jQuery selector of the html element in which state should be loaded. This element should exist
+                    inside assets/index.html file.
+                </td>
+            </tr>
+            <tr>
+                <td><code>default</code></td>
+                <td></td>
+                <td>Object defining default module and state (to use when these are not provided in url).</td>
+            </tr>
+            <tr>
+                <td><code>libs</code></td>
+                <td></td>
+                <td>Object containing libraries. Mappings of the JavaScript and scss files, which are to be used in
+                    build process.
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h2>Creating module</h2>
+        <p>User's modules reside inside the <span class="folder">module</span>
+            folder and are organized module per folder.
+        </p>
+        <p>
+            After creating module directory. It should be added into modules array of <code>getConfig()</code> method in
+            bootstrap.js file.
+            This way framework will know about existence of new module.
+        </p>
+
+        <p>
+            The main JavaScript of module file should reside inside the module directory and be called same as module
+            with <span class="text-muted">.js</span> extension.
+        </p>
+
+<pre><code class="javascript">
+    class ExampleModule extends Module {
+
+        constructor() {
+            this.settings = {};
+        }
+
+        postRender() {
+            $("[data-toggle='tooltip']").tooltip();
+            $("[data-toggle='popover']").popover();
+        }
+    }
+
+    window.classes["ExampleModule"] = ExampleModule;
+
+</code></pre>
+
+        <p>
+            Module can implement method <code>postRender()</code> which is called once state rendering is complete.
+            Handy place to
+            initiate global jQuery components. Also module property settings will be packed with other module's settings
+            into single object available trough application, particularly in controllers via <code>this.settings</code>
+        </p>
+
+        <h2>Creating state</h2>
+        <p>
+            Application states are created inside the module. Each state is conceptually similar to page in conventional
+            web applications. States are consisted out of controller and view and architecture is based on MVC pattern.
+            When creating a state first is to declare state view inside <span class="folder">view</span> folder. Views
+            are always named by state name according to the url and suffixed with <span class="file">.html</span>
+            extension.
+            Here is example of bar.html, lines are explained as in-code comments.
+        </p>
+<pre><code class="html">
+    &lt;!-- This is example of our foo/view/bar.html --&gt;
+
+    &lt;!-- Line bellow will include our bar state controller located in foo module (foo/controller/BarController.js) --&gt;
+    &lt;script src=&quot;../controller/BarController.js&quot;&gt;&lt;/script&gt;
+
+    &lt;template&gt;
+          &lt;!-- Here should go contents of our state which will be inserted in element defined in viewSelector --&gt;
+    &lt;/template&gt;
+
+</code></pre>
+
+    <p>Let's analyze the contents of <span class="file">BarController.js</span> which will control the behavior of the state.</p>
+    <pre><code class="javascript">
+    class BarController extends Controller {
+
+        constructor() {
+            super();
+
+            // our module settings are available here :)
+            this.settings = {};
+        }
+
+        /**
+         * Sometimes we need to do something asynchronous in our state such as ajax call. This is the place for it.
+         * Until defer object is either resolved or rejected no further rendering of html will happen.
+         */
+        async(defer) {
+
+            if(somethingAsync(function(data) {
+                this.someData = data;
+                defer.resolve();
+            }));
+
+            return defer.promise();
+        }
+
+        /**
+         * After async is executed and promise resolved, template getter is being called. We can override it in our
+         * controller class to make modification to template html, for example replace placeholders with Handlebars.js
+         */
+        get template() {
+            return super.template;
+        }
+
+        /**
+         * Called after html has been rendered on page. Attach event handlers here.
+         */
+        assign() {
+
+        }
+
+        /**
+         * Called before navigating to next state. Clear mess your state has made here.
+         */
+        resign() {
+
+        }
+
+    }
+
+    window.classes['BarController'] = BarController;
+    </code></pre>
+
+    <p>Now our state is ready and we can finally access it via its appropriate url: <span class="url">https://example.com/application/#foo/bar</span></p>
+
+    </div>
+
+    <a href="https://github.com/ivanstan/frontend-framework"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo2.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
 </template>
