@@ -8,7 +8,7 @@ var gulp = require('gulp'),
     rename = require('gulp-rename'),
     inject = require('gulp-inject'),
     bootstrap = require('./bootstrap.js'),
-    nodeFrm = require('./vendor/frontend-framework/core/NodeFramework.js'),
+    nodeFrm = require('./core/NodeFramework.js'),
     config = bootstrap.getConfig(),
     libs = nodeFrm.resolveDependencies(config['libs'], 'dependencies'),
     sourceJs = [],
@@ -37,6 +37,23 @@ gulp.task('js', function () {
     gulp.src(sourceJs)
         .pipe(concat('javascript.js'))
         .pipe(gulp.dest('./assets'));
+});
+
+gulp.task('framework', function () {
+
+    gulp.src([
+            'core/Util.js',
+            'core/Exception.js',
+            'core/AjaxException.js',
+            'core/Module.js',
+            'core/Controller.js',
+            'core/Route.js',
+            'core/Storage.js',
+            'core/Application.js'
+        ])
+        .pipe(concat('frontend-framework.js'))
+        .pipe(gulp.dest('./build'));
+
 });
 
 gulp.task('development', function () {

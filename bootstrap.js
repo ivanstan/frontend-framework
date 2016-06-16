@@ -8,21 +8,17 @@ exports.getConfig = function () {
             module: 'example',
             controller: 'default'
         },
-        libs: [
-            {
-                name: 'jquery',
-                js: ['vendor/jquery-2.2.3.min.js']
-            }, {
+        libs: [{
                 name: 'framework',
                 js: [
                     'core/Util.js',
-                    'core/Module.js',
+                    'core/Exception.js',
+                    'core/AjaxException.js',
                     'core/Storage.js',
                     'core/Route.js',
-                    'core/Application.js',
+                    'core/Module.js',
                     'core/Controller.js',
-                    'core/Exception.js',
-                    'core/AjaxException.js'
+                    'core/Application.js'
                 ]
             }, {
                 name: 'application',
