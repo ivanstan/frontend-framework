@@ -7,13 +7,16 @@ var gulp = require('gulp'),
     cleanCSS = require('gulp-clean-css'),
     rename = require('gulp-rename'),
     inject = require('gulp-inject'),
+    replace = require('gulp-replace-task'),
+    fs = require('fs'),
     packageJson = require('./package.json'),
-    bootstrap = require('./bootstrap.js'),
     NodeFramework = require('./core/NodeFramework.js'),
     sourceJs = [],
     sourceScss = [];
 
-NodeFramework.setConfig(bootstrap.getConfig());
+var config = JSON.parse(fs.readFileSync('bootstrap.json', 'utf8'));
+
+NodeFramework.setConfig(config);
 var libs = NodeFramework.resolveDependencies('dependencies');
 
 for (var i in libs) {
@@ -42,7 +45,9 @@ gulp.task('js', function () {
 });
 
 gulp.task('framework', function () {
-    gulp.src(NodeFramework.getLibrary('framework'))
+    var lib = NodeFramework.getLibrary(libs, 'framework');
+    
+    gulp.src(lib.js)
         .pipe(concat('frontend-framework-' + packageJson.version + '.js'))
         .pipe(gulp.dest('./build'));
 });
@@ -54,6 +59,19 @@ gulp.task('development', function () {
             relative: false,
             addRootSlash: false
         }))
+        .pipe(replace({
+            patterns: [
+                {
+                    match: /{bootstrap.json}/g,
+                    replacement: function () {
+                        var DI = config;
+                        delete DI.libs;
+
+                        return JSON.stringify(DI);
+                    }
+                }
+            ]
+        }))
         .pipe(rename('index-dev.html'))
         .pipe(gulp.dest('./'));
 });
@@ -64,6 +82,19 @@ gulp.task('production', function () {
         .pipe(inject(gulp.src(['assets/javascript.js', 'assets/styles.css'], {read: false}), {
             relative: false,
             addRootSlash: false
+        }))
+        .pipe(replace({
+            patterns: [
+                {
+                    match: /{bootstrap.json}/g,
+                    replacement: function () {
+                        var DI = config;
+                        delete DI.libs;
+
+                        return JSON.stringify(DI);
+                    }
+                }
+            ]
         }))
         .pipe(rename('index.html'))
         .pipe(gulp.dest('./'));

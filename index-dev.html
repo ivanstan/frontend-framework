@@ -24,8 +24,13 @@
     <script src="core/Route.js"></script>
     <script src="core/Storage.js"></script>
     <script src="core/Application.js"></script>
-    <script src="bootstrap.js"></script>
     <!-- endinject -->
+
+    <script>
+        'use strict';
+
+        var App = new Application({"modules":{"example":{"settings":{}}},"viewSelector":"#container","default":{"module":"example","controller":"default"}});
+    </script>
 
     <!-- inject:css -->
     <link rel="stylesheet" href="assets/styles.css">
@@ -46,5 +51,6 @@
 <main id="container" class="container">
 
 </main>
+
 </body>
 </html>

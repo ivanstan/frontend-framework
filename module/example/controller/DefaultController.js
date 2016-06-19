@@ -2,6 +2,9 @@ class DefaultController extends Controller {
 
     constructor() {
         super();
+
+
+        
     }
 
     assign() {

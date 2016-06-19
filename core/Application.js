@@ -1,6 +1,7 @@
 class Application {
 
     constructor(settings) {
+        window.classes = window.classes || {};
         this.settings = settings;
         this.modules = {};
         this.current = {};
@@ -27,8 +28,10 @@ class Application {
     loadModules() {
         var defer = $.Deferred();
 
-        for (var i in this.settings.modules) {
-            var moduleName = this.settings.modules[i];
+        var moduleCount = Object.keys(this.settings.modules).length;
+        var currentCount = 0;
+
+        for (var moduleName in this.settings.modules) {
             var moduleClassName = Util.capitalize(moduleName) + 'Module';
 
             $.ajax({
@@ -37,18 +40,18 @@ class Application {
                     var moduleClass = window.classes[moduleClassName];
 
                     if (typeof moduleClass !== 'undefined') {
-                        var module = new moduleClass();
+                        var module = new moduleClass(this);
 
                         this.modules[moduleName] = module;
 
                         this.settings['modules'][moduleName] = module.settings;
-                        this.settings['modules'].splice(this.settings['modules'].indexOf(moduleName), 1);
+                        // this.settings['modules'].splice(this.settings['modules'][moduleName], 1);
 
                         if (jqXHR.status !== 200) {
                             defer.reject(jqXHR, textStatus, 'Error loading ' + moduleClassName);
                         }
 
-                        if (i == this.settings.modules.length) {
+                        if (currentCount == moduleCount) {
                             defer.resolve();
                         }
                     }
@@ -59,6 +62,7 @@ class Application {
                     defer.reject(jqXHR, textStatus, errorThrown);
                 }
             });
+            currentCount++;
         }
 
         return defer.promise();
@@ -84,7 +88,7 @@ class Application {
                     Util.notification('error', 'State controller missing' + route.controllerClassName);
                 }
 
-                var controller = new controllerClass();
+                var controller = new controllerClass(this);
 
                 controller.settings = this.settings;
                 controller.template = template;

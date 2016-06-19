@@ -40,13 +40,11 @@ module.exports = {
         return sorted;
     },
 
-    getLibrary: function (name) {
+    getLibrary: function (libs, name) {
 
-        console.log(this.settings);
-
-        for (var i in this.settings.libs) {
-            if(this.settings.libs[i].name == name) {
-                return this.settings.libs[i].name;
+        for (var i in libs) {
+            if(libs[i].name == name) {
+                return libs[i];
             }
         }
     }
