@@ -87,6 +87,12 @@ class Framework {
      * @param {Route} route
      */
     navigate(route) {
+        // call resign of previous controller
+        if (typeof this.current.controller !== 'undefined') {
+            this.current.controller.destructor();
+        }
+
+        this.hook('preRender');
         this.loadController(route)
             .fail((jqXHR, textStatus, errorThrown) => {
 
@@ -113,11 +119,6 @@ class Framework {
 
                 controller.preRender()
                     .always(() => {
-                        // call resign of previous controller
-                        if (typeof this.current.controller !== 'undefined') {
-                            this.current.controller.destructor();
-                        }
-
                         let view = $(this.config.viewSelector);
 
                         view.html(controller.template);

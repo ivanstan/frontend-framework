@@ -4,6 +4,27 @@ Application resources are organized in states which are routed in scheme <span c
 Here is an example url which will navigate to state bar inside foo module:
 <span class="url">https://example.com/application/#foo/bar</span>
 
+## Application Lifecycle
+
+Once application is bootstraped all modules will be created and their constructors will be called.
+This is one time event that occurs when user has accessed the application for the first time.
+
+<div class="mermaid">
+graph LR;
+    AL(Application Loaded)-->MC(Module constructors);
+</div>
+
+Afterwards all state changes are preformed via asynchronous calls according to the application lifecycle and no page refresh will be executed.
+
+<div class="mermaid">
+graph LR;
+    ConDestructor(Controller destructor)-->ModPreRender(Module preRender)
+    ModPreRender-->ConConstructor(Controller Constructor)
+    ConConstructor-->ConPostRender(Controller preRender)
+    ConPostRender-->ConPreRender(Controller postRender)
+    ConPreRender-->ModPostRender(Module postRender)
+</div>
+
 ##Directory structure
 <table class="table">
     <tbody>

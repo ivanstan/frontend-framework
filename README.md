@@ -13,6 +13,12 @@ Execute ```gulp build``` to fully build application.
 ## Tutorial
 Visit [http://dev.byteout.com/frontend-framework#example/tutorial](http://dev.byteout.com/frontend-framework#example/tutorial)
 
+## Use from CDN
+
+```
+https://cdn.rawgit.com/ivanstan/frontend-framework/master/build/frontend-framework-1.0.0.js
+```
+
 ## Licence
 
 MIT License

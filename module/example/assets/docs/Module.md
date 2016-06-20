@@ -15,9 +15,14 @@
 ## Class: Module
 
 
+### Module.preRender() 
+
+Executed before state rendering process starts.
+
+
 ### Module.postRender() 
 
-Hook called once state rendering is complete.
+Executed once state rendering is complete.
 
 
 

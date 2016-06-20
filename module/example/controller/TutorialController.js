@@ -10,23 +10,18 @@ class TutorialController extends Controller {
             let element = $(block);
 
             var url = element.data('url');
-            if (typeof url !== typeof undefined && url !== false) {
-                $.get(url, (data) => {
-                    let markdown = this.converter.makeHtml(data);
-                    element.html(markdown);
 
-                    $('pre code').each((i, block) => {
-                        hljs.highlightBlock(block);
-                    });
-                });
-            } else {
-                let markdown = this.converter.makeHtml(element.html());
+            $.get(url, (data) => {
+                let markdown = this.converter.makeHtml(data);
                 element.html(markdown);
 
                 $('pre code').each((i, block) => {
                     hljs.highlightBlock(block);
                 });
-            }
+
+                mermaid.init({noteMargin: 10}, ".mermaid");
+            });
+
         });
     }
 }
