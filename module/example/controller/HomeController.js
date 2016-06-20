@@ -1,4 +1,4 @@
-class DefaultController extends Controller {
+class HomeController extends Controller {
 
     constructor() {
         super();
@@ -31,4 +31,4 @@ class DefaultController extends Controller {
     }
 }
 
-window.classes["DefaultController"] = DefaultController;
+window.classes["HomeController"] = HomeController;

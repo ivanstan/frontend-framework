@@ -30,7 +30,8 @@
         <nav class="navbar navbar-dark bg-inverse">
             <div class="nav navbar-nav">
                 <a class="navbar-brand" href="#">Frontend Framework</a>
-                <a class="nav-item nav-link active" href="#">Home <span class="sr-only">(current)</span></a>
+                <a class="nav-item nav-link" href="#example/home">Home</a>
+                <a class="nav-item nav-link" href="#example/tutorial">Tutorial</a>
             </div>
         </nav>
     </div>
@@ -43,7 +44,7 @@
 <script>
     'use strict';
 
-    var App = new Framework({"modules":{"example":{"settings":{}}},"viewSelector":"#container","default":{"module":"example","controller":"default"}});
+    var App = new Framework({"modules":{"example":{"settings":{}}},"viewSelector":"#container","default":{"module":"example","controller":"home"}});
 </script>
 
 </body>

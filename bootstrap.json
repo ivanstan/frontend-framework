@@ -7,7 +7,7 @@
   "viewSelector": "#container",
   "default": {
     "module": "example",
-    "controller": "default"
+    "controller": "home"
   },
   "libs": [
     {

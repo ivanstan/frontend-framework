@@ -11,7 +11,7 @@ Execute ```npm install``` to install required node packages, needed for developm
 Execute ```gulp build``` to fully build application.
 
 ## Tutorial
-Visit [http://dev.byteout.com/frontend-framework/](http://dev.byteout.com/frontend-framework/)
+Visit [http://dev.byteout.com/frontend-framework#example/tutorial](http://dev.byteout.com/frontend-framework#example/tutorial)
 
 ## Licence
 
