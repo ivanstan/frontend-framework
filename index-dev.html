@@ -10,11 +10,12 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/tether/1.3.2/js/tether.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/js/bootstrap.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/highlight.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/showdown/1.4.1/showdown.min.js"></script>
+
     <link href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/css/bootstrap.css" rel="stylesheet"
           type="text/css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/github.min.css">
-
     <!-- inject:js -->
     <script src="core/Util.js"></script>
     <script src="core/Exception.js"></script>
@@ -23,14 +24,8 @@
     <script src="core/Controller.js"></script>
     <script src="core/Route.js"></script>
     <script src="core/Storage.js"></script>
-    <script src="core/Application.js"></script>
+    <script src="core/Framework.js"></script>
     <!-- endinject -->
-
-    <script>
-        'use strict';
-
-        var App = new Application({"modules":{"example":{"settings":{}}},"viewSelector":"#container","default":{"module":"example","controller":"default"}});
-    </script>
 
     <!-- inject:css -->
     <link rel="stylesheet" href="assets/styles.css">
@@ -51,6 +46,12 @@
 <main id="container" class="container">
 
 </main>
+
+<script>
+    'use strict';
+
+    var App = new Framework({"modules":{"example":{"settings":{}}},"viewSelector":"#container","default":{"module":"example","controller":"default"}});
+</script>
 
 </body>
 </html>

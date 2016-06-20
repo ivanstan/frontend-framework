@@ -23,24 +23,6 @@ class Util {
         return loading;
     }
 
-    /**
-     * Raise notification to user.
-     *
-     * @param type      Possible values: 'error', 'warning', 'success', 'info'
-     * @param title
-     * @param message
-     */
-    static notification(type, title, message) {
-        if (typeof window.toastr == 'object' && typeof window['toastr'][type] == 'function') {
-
-            if (!Util.isDebug() && type === 'error') {
-                return false;
-            }
-
-            window['toastr'][type](title, message);
-        }
-    }
-
     static link2html(link) {
         var template = $(link[0].import).find('template');
 
@@ -49,10 +31,6 @@ class Util {
         }
 
         return template.html();
-    }
-
-    static isDebug() {
-        return location.pathname.indexOf('index-dev.html') > 0
     }
 
     static toggleFullScreen() {
@@ -348,7 +326,7 @@ Storage.getItem = function(name, def) {
     return value == null ? def : value;
 };
 
-class Application {
+class Framework {
 
     constructor(settings) {
         window.classes = window.classes || {};
@@ -367,7 +345,7 @@ class Application {
                     .setTextStatus(textStatus)
                     .setErrorThrown(errorThrown);
 
-                Application.errorHandler(exception);
+                this.errorHandler(exception);
             });
 
         $(window).on('hashchange', () => {
@@ -428,14 +406,14 @@ class Application {
                     .setErrorThrown(errorThrown)
                     .setRoute(route);
 
-                Application.errorHandler(exception);
+                this.errorHandler(exception);
                 return null;
             })
             .done((template) => {
                 let controllerClass = window.classes[route.controllerClassName];
 
                 if (typeof controllerClass == 'undefined') {
-                    Util.notification('error', 'State controller missing' + route.controllerClassName);
+                    this.notification('error', 'State controller missing' + route.controllerClassName);
                 }
 
                 var controller = new controllerClass(this);
@@ -475,14 +453,14 @@ class Application {
                 var template = Util.link2html(link);
 
                 if (template == false) {
-                    Util.notification('error', 'File ' + viewFile + ' is not template');
+                    this.notification('error', 'File ' + viewFile + ' is not template');
                     defer.reject();
                 }
 
                 defer.resolve(template);
             })
             .fail(() => {
-                Util.notification('error', 'Error loading ' + viewFile);
+                this.notification('error', 'Error loading ' + viewFile);
             });
 
         return defer.promise();
@@ -506,7 +484,7 @@ class Application {
             defer.resolve($(link));
         };
         link.onerror = (event) => {
-            Util.notification('error', 'Unable to load: ' + href);
+            this.notification('error', 'Unable to load: ' + href);
             defer.reject(event);
         };
 
@@ -523,18 +501,40 @@ class Application {
                 try {
                     module[hookName]();
                 } catch (exception) {
-                    Util.notification('error', exception, 'Exception');
+                    this.notification('error', exception, 'Exception');
                 }
             }
         }
     }
 
-    static errorHandler(exception) {
+    errorHandler(exception) {
         exception.processError();
 
-        Util.notification('error', exception.getTitle(), exception.getMessage());
+        this.notification('error', exception.getTitle(), exception.getMessage());
 
         console.log(exception);
+    }
+
+    /**
+     * Raise notification to user.
+     *
+     * @param type      Possible values: 'error', 'warning', 'success', 'info'
+     * @param title
+     * @param message
+     */
+    notification(type, title, message) {
+        if (typeof window.toastr == 'object' && typeof window['toastr'][type] == 'function') {
+
+            if (!this.isDebug() && type === 'error') {
+                return false;
+            }
+
+            window['toastr'][type](title, message);
+        }
+    }
+
+    isDebug() {
+        return location.pathname.indexOf('index-dev.html') > 0
     }
 
 }

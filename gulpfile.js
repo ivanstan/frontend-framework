@@ -1,21 +1,20 @@
 require('any-promise/register/bluebird');
 require('any-promise/register')('bluebird', {Promise: require('bluebird')});
 
-var gulp = require('gulp'),
+var fs = require('fs'),
+    gulp = require('gulp'),
     sass = require('gulp-sass'),
     concat = require('gulp-concat'),
     cleanCSS = require('gulp-clean-css'),
     rename = require('gulp-rename'),
     inject = require('gulp-inject'),
     replace = require('gulp-replace-task'),
-    fs = require('fs'),
     packageJson = require('./package.json'),
     NodeFramework = require('./core/NodeFramework.js'),
     sourceJs = [],
     sourceScss = [];
 
 var config = JSON.parse(fs.readFileSync('bootstrap.json', 'utf8'));
-
 NodeFramework.setConfig(config);
 var libs = NodeFramework.resolveDependencies('dependencies');
 

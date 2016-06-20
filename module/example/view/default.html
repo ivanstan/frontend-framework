@@ -58,15 +58,14 @@
 
         <h2>Configuration</h2>
         <p>
-            Application is intended to be configured in bootstrap.js file. Configuration object is returned by <code>getConfig()</code>
-            method. Bellow is the overview of configuration object:
+            Application is intended to be configured in bootstrap.json file. Bellow is the overview of configuration object:
         </p>
         <table class="table">
             <tbody>
             <tr>
                 <td><code>modules</code></td>
-                <td width="160px"><code>['foo', 'test']</code></td>
-                <td>Array of modules that exist in application. This names should match the folder names in moduel
+                <td width="160px"><code>{'foo': {}, 'test': {}}</code></td>
+                <td>Object of modules that exist in application. This names should match the folder names in module
                     folder.
                 </td>
             </tr>
@@ -97,8 +96,7 @@
             folder and are organized module per folder.
         </p>
         <p>
-            After creating module directory. It should be added into modules array of <code>getConfig()</code> method in
-            bootstrap.js file.
+            After creating module directory. It should be added into modules object of in bootstrap.json file.
             This way framework will know about existence of new module.
         </p>
 
@@ -208,5 +206,11 @@
 
     </div>
 
-    <a href="https://github.com/ivanstan/frontend-framework"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo2.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+    <!--<div class="showdown">-->
+
+<!--#Test-->
+
+    <!--</div>-->
+
+    <a href="https://github.com/ivanstan/frontend-framework"><img style="position: absolute; top: 0; right: 0; border: 0;" src="assets/images/fork-ribbon.png" alt="Fork me on GitHub"></a>
 </template>

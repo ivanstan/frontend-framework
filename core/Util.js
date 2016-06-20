@@ -23,24 +23,6 @@ class Util {
         return loading;
     }
 
-    /**
-     * Raise notification to user.
-     *
-     * @param type      Possible values: 'error', 'warning', 'success', 'info'
-     * @param title
-     * @param message
-     */
-    static notification(type, title, message) {
-        if (typeof window.toastr == 'object' && typeof window['toastr'][type] == 'function') {
-
-            if (!Util.isDebug() && type === 'error') {
-                return false;
-            }
-
-            window['toastr'][type](title, message);
-        }
-    }
-
     static link2html(link) {
         var template = $(link[0].import).find('template');
 
@@ -49,10 +31,6 @@ class Util {
         }
 
         return template.html();
-    }
-
-    static isDebug() {
-        return location.pathname.indexOf('index-dev.html') > 0
     }
 
     static toggleFullScreen() {
