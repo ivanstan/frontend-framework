@@ -106,6 +106,14 @@ class Exception {
         return this._message;
     }
 
+    set message(message) {
+        this._message = message;
+    }
+
+    set title(title) {
+        this._title = title;
+    }
+
     get title() {
         return this._title;
     }
@@ -139,7 +147,7 @@ class AjaxException extends Exception {
     error() {
 
         if(typeof this._errorThrown !== 'string') {
-            this.message = this._errorThrown;
+            this._message = this._errorThrown;
         }
 
         var message;
@@ -154,7 +162,7 @@ class AjaxException extends Exception {
 
         if (this._jqXHR.status) {
             message = statusErrorMap[this._jqXHR.status];
-            this.title = message;
+            this._message = message;
         }
 
         switch(this._textStatus) {
@@ -168,7 +176,7 @@ class AjaxException extends Exception {
 
                 break;
             case 'parsererror':
-                this.title = 'Parser error';
+                this._title = 'Parser error';
                 break;
             case 'success':
 
@@ -256,7 +264,7 @@ class Controller {
 
     /**
      *
-     * @returns {Object}
+     * @returns {Route}
      */
     get route() {
         return this._route;

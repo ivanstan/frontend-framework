@@ -22,7 +22,7 @@ class AjaxException extends Exception {
     error() {
 
         if(typeof this._errorThrown !== 'string') {
-            this.message = this._errorThrown;
+            this._message = this._errorThrown;
         }
 
         var message;
@@ -37,7 +37,7 @@ class AjaxException extends Exception {
 
         if (this._jqXHR.status) {
             message = statusErrorMap[this._jqXHR.status];
-            this.message = message;
+            this._message = message;
         }
 
         switch(this._textStatus) {
@@ -51,7 +51,7 @@ class AjaxException extends Exception {
 
                 break;
             case 'parsererror':
-                this.title = 'Parser error';
+                this._title = 'Parser error';
                 break;
             case 'success':
 
