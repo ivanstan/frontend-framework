@@ -1,5 +1,12 @@
 class Route {
 
+    /**
+     * Constructor. Parses the route string to object.
+     *
+     * @param {String} path Path string to parse.
+     * @param {Object} params Object of parameters to pass to target state.
+     * @returns {Object} Route object
+     */
     constructor(path, params) {
         let route = {};
         let uri = path.substring(1).split('?');

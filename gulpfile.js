@@ -100,7 +100,13 @@ gulp.task('production', function () {
 });
 
 gulp.task('build', function () {
-    gulp.start(['styles', 'js', 'framework', 'development', 'production']);
+    gulp.start(['styles', 'js', 'framework', 'development', 'production', 'docs']);
+});
+
+gulp.task('docs', function () {
+    var jsdox = require("jsdox");
+
+    jsdox.generateForDir('./core', './module/example/assets/docs', './assets/templates', function() {});
 });
 
 gulp.task('watch', function () {
