@@ -6,14 +6,27 @@ class DefaultController extends Controller {
     }
 
     assign() {
-        $('pre code').each((i, block) => {
-            hljs.highlightBlock(block);
-        });
-
         $('.showdown').each((i, block) => {
             let element = $(block);
-            let markdown = this.converter.makeHtml(element.html());
-            element.html(markdown);
+
+            var url = element.data('url');
+            if (typeof url !== typeof undefined && url !== false) {
+                $.get(url, (data) => {
+                    let markdown = this.converter.makeHtml(data);
+                    element.html(markdown);
+
+                    $('pre code').each((i, block) => {
+                        hljs.highlightBlock(block);
+                    });
+                });
+            } else {
+                let markdown = this.converter.makeHtml(element.html());
+                element.html(markdown);
+
+                $('pre code').each((i, block) => {
+                    hljs.highlightBlock(block);
+                });
+            }
         });
     }
 }
