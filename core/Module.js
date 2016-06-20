@@ -1,6 +1,13 @@
+/**
+ *
+ */
 class Module {
 
-    constructor() {
+    /**
+     *
+     * @param {Framework} app Framework object
+     */
+    constructor(app) {
         this._settings = {};
     }
 

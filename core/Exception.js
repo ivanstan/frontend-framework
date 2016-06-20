@@ -20,6 +20,14 @@ class Exception {
         return this._message;
     }
 
+    set message(message) {
+        this._message = message;
+    }
+
+    set title(title) {
+        this._title = title;
+    }
+
     get title() {
         return this._title;
     }

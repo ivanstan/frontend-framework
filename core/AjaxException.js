@@ -37,7 +37,7 @@ class AjaxException extends Exception {
 
         if (this._jqXHR.status) {
             message = statusErrorMap[this._jqXHR.status];
-            this.title = message;
+            this.message = message;
         }
 
         switch(this._textStatus) {

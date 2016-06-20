@@ -12,9 +12,9 @@ class Route {
         let uri = path.substring(1).split('?');
         route.pathname = uri[0].split('/');
 
-        route.module = route.pathname[0] ? route.pathname[0] : App.settings.default.module;
-        route.controller = route.pathname[1] ? route.pathname[1] : App.settings.default.controller;
-        route.controllerClassName = route.pathname[1] ? Util.capitalize(route.pathname[1]) + 'Controller' : Util.capitalize(App.settings.default.controller) + 'Controller';
+        route.module = route.pathname[0] ? route.pathname[0] : App.config.default.module;
+        route.controller = route.pathname[1] ? route.pathname[1] : App.config.default.controller;
+        route.controllerClassName = route.pathname[1] ? Util.capitalize(route.pathname[1]) + 'Controller' : Util.capitalize(App.config.default.controller) + 'Controller';
         route.pathname = uri[0];
         route.params = {};
 

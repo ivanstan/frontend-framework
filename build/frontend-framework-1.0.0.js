@@ -184,9 +184,16 @@ class AjaxException extends Exception {
     }
 
 }
+/**
+ *
+ */
 class Module {
 
-    constructor() {
+    /**
+     *
+     * @param {Framework} app Framework object
+     */
+    constructor(app) {
         this._settings = {};
     }
 
@@ -206,41 +213,61 @@ class Module {
     }
 
 }
+/**
+ *
+ */
 class Controller {
 
-    constructor() {
+    /**
+     *
+     * @param app
+     */
+    constructor(app) {
         this._defer = $.Deferred();
         this._template = '';
         this._route = {};
-        this._settings = {};
     }
 
+    /**
+     * Defer object getter. Getter of deferred object of async method.
+     *
+     * @returns {Defer}
+     */
     get deferred() {
         return this._defer;
     }
 
+    /**
+     * Template getter.
+     *
+     * @returns {String}
+     */
     get template() {
         return this._template;
     }
 
+    /**
+     *
+     * @param {String} template
+     */
     set template(template) {
         this._template = template;
     }
 
+    /**
+     *
+     * @returns {Object}
+     */
     get route() {
         return this._route;
     }
 
+    /**
+     *
+     * @param {Route} route
+     */
     set route(route) {
         this._route = route;
-    }
-
-    set settings(settings) {
-        this._settings = settings;
-    }
-
-    get settings() {
-        return this._settings;
     }
 
     /**
@@ -248,9 +275,9 @@ class Controller {
      * Further controller processing shall not be executed until defer object is either
      * resolver or rejected.
      *
-     * @returns Defer promise
+     * @returns {Promise} promise
      */
-    async() {
+    preRender() {
         this._defer.resolve();
         return this._defer.promise();
     }
@@ -258,7 +285,7 @@ class Controller {
     /**
      * Template is loaded. Use this method to attach event handlers.
      */
-    assign() {
+    postRender() {
 
     }
 
@@ -266,21 +293,28 @@ class Controller {
      * Called when controller another controller is called. Event handlers will be detached automatically,
      * use this method to cleanup additional elements added on page.
      */
-    resign() {
+    destructor() {
 
     }
 
 }
 class Route {
 
+    /**
+     * Constructor. Parses the route string to object.
+     *
+     * @param {String} path Path string to parse.
+     * @param {Object} params Object of parameters to pass to target state.
+     * @returns {Object} Route object
+     */
     constructor(path, params) {
         let route = {};
         let uri = path.substring(1).split('?');
         route.pathname = uri[0].split('/');
 
-        route.module = route.pathname[0] ? route.pathname[0] : App.settings.default.module;
-        route.controller = route.pathname[1] ? route.pathname[1] : App.settings.default.controller;
-        route.controllerClassName = route.pathname[1] ? Util.capitalize(route.pathname[1]) + 'Controller' : Util.capitalize(App.settings.default.controller) + 'Controller';
+        route.module = route.pathname[0] ? route.pathname[0] : App.config.default.module;
+        route.controller = route.pathname[1] ? route.pathname[1] : App.config.default.controller;
+        route.controllerClassName = route.pathname[1] ? Util.capitalize(route.pathname[1]) + 'Controller' : Util.capitalize(App.config.default.controller) + 'Controller';
         route.pathname = uri[0];
         route.params = {};
 
@@ -301,15 +335,50 @@ class Route {
     }
 
 }
-Storage.setObject = function(key, value) {
-    Storage.setItem(key, JSON.stringify(value));
+/**
+ * Sets the String type item to local storage.
+ *
+ * @param {String} name Save under this name.
+ * @param {String} value Value to be saved.
+ */
+Storage.setItem = function(name, value) {
+    window.localStorage.setItem(name, value);
 };
 
-Storage.getObject = function(key, def) {
+/**
+ * Get String type item from local storage.
+ *
+ * @param {String} name Name of item to fetch.
+ * @param {String} def Default value to use if the item doesn't exist.
+ * @returns {String}
+ */
+Storage.getItem = function(name, def) {
+    var value = window.localStorage.getItem(name);
+    return value == null ? def : value;
+};
+
+/**
+ * Set object data type in local storage
+ *
+ * @param {String} name Save under this name.
+ * @param {Object} value Object to be saved.
+ */
+Storage.setObject = function(name, value) {
+    Storage.setItem(name, JSON.stringify(value));
+};
+
+/**
+ * Get Object data type item from local storage.
+ *
+ * @param {String} name Name of item to fetch.
+ * @param {String} def Default value to use if the item doesn't exist.
+ * @returns {String}
+ */
+Storage.getObject = function(name, def) {
     var value;
 
     try {
-        value = JSON.parse(Storage.getItem(key, def));
+        value = JSON.parse(Storage.getItem(name, def));
     } catch (exception) {
         value = def;
     }
@@ -317,20 +386,19 @@ Storage.getObject = function(key, def) {
     return value;
 };
 
-Storage.setItem = function(name, value) {
-    window.localStorage.setItem(name, value);
-};
-
-Storage.getItem = function(name, def) {
-    var value = window.localStorage.getItem(name);
-    return value == null ? def : value;
-};
-
+/**
+ *
+ */
 class Framework {
 
-    constructor(settings) {
+    /**
+     * Application bootstrap.
+     *
+     * @param settings
+     */
+    constructor(config) {
         window.classes = window.classes || {};
-        this.settings = settings;
+        this.config = config;
         this.modules = {};
         this.current = {};
 
@@ -353,13 +421,18 @@ class Framework {
         });
     };
 
+    /**
+     * Performs loading of modules.
+     *
+     * @returns {*}
+     */
     loadModules() {
         var defer = $.Deferred();
 
-        var moduleCount = Object.keys(this.settings.modules).length;
+        var moduleCount = Object.keys(this.config.modules).length;
         var currentCount = 0;
 
-        for (var moduleName in this.settings.modules) {
+        for (var moduleName in this.config.modules) {
             var moduleClassName = Util.capitalize(moduleName) + 'Module';
 
             $.ajax({
@@ -372,8 +445,8 @@ class Framework {
 
                         this.modules[moduleName] = module;
 
-                        this.settings['modules'][moduleName] = module.settings;
-                        // this.settings['modules'].splice(this.settings['modules'][moduleName], 1);
+                        this.config['modules'][moduleName] = module.settings;
+                        // this.config['modules'].splice(this.config['modules'][moduleName], 1);
 
                         if (jqXHR.status !== 200) {
                             defer.reject(jqXHR, textStatus, 'Error loading ' + moduleClassName);
@@ -396,6 +469,11 @@ class Framework {
         return defer.promise();
     }
 
+    /**
+     * Navigate to state.
+     *
+     * @param {Route} route
+     */
     navigate(route) {
         this.loadController(route)
             .fail((jqXHR, textStatus, errorThrown) => {
@@ -418,23 +496,22 @@ class Framework {
 
                 var controller = new controllerClass(this);
 
-                controller.settings = this.settings;
                 controller.template = template;
                 controller.route = route;
 
-                controller.async(controller.deferred)
+                controller.preRender()
                     .always(() => {
                         // call resign of previous controller
                         if (typeof this.current.controller !== 'undefined') {
-                            this.current.controller.resign();
+                            this.current.controller.destructor();
                         }
 
-                        let view = $(this.settings.viewSelector);
+                        let view = $(this.config.viewSelector);
 
                         view.html(controller.template);
                         view.attr('class', route.pathname.replace('/', '-') + '-page');
 
-                        this.current.assign = controller.assign();
+                        this.current.assign = controller.postRender();
                         this.current.controller = controller;
                         this.hook('postRender');
                     });
@@ -493,6 +570,11 @@ class Framework {
         return defer.promise();
     }
 
+    /**
+     * Execute a module hook. This function will run methods name hookName in all modules.
+     *
+     * @param {String} hookName
+     */
     hook(hookName) {
         for (let i in this.modules) {
             let module = this.modules[i];
@@ -518,9 +600,9 @@ class Framework {
     /**
      * Raise notification to user.
      *
-     * @param type      Possible values: 'error', 'warning', 'success', 'info'
-     * @param title
-     * @param message
+     * @param {String} type      Possible values: 'error', 'warning', 'success', 'info'
+     * @param {String} title
+     * @param {String} message
      */
     notification(type, title, message) {
         if (typeof window.toastr == 'object' && typeof window['toastr'][type] == 'function') {
@@ -533,6 +615,11 @@ class Framework {
         }
     }
 
+    /**
+     * Returns true if application is in debug mode.
+     *
+     * @returns {Boolean}
+     */
     isDebug() {
         return location.pathname.indexOf('index-dev.html') > 0
     }

@@ -134,18 +134,16 @@ Here is example of bar.html, lines are explained as in-code comments.
 ```javascript
 class BarController extends Controller {
 
-    constructor() {
-        super();
+    constructor(app) {
+        super(app);
 
-        // our module settings are available here :)
-        this.settings = {};
     }
 
     /**
      * Sometimes we need to do something asynchronous in our state such as ajax call. This is the place for it.
      * Until defer object is either resolved or rejected no further rendering of html will happen.
      */
-    async(defer) {
+    preRender(defer) {
 
         if(somethingAsync(function(data) {
             this.someData = data;
@@ -166,14 +164,14 @@ class BarController extends Controller {
     /**
      * Called after html has been rendered on page. Attach event handlers here.
      */
-    assign() {
+    postRender() {
 
     }
 
     /**
      * Called before navigating to next state. Clear mess your state has made here.
      */
-    resign() {
+    destructor() {
 
     }
 

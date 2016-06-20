@@ -1,11 +1,11 @@
 class DocsController extends Controller {
 
-    constructor() {
-        super();
+    constructor(app) {
+        super(app);
         this.converter = new showdown.Converter();
     }
 
-    assign() {
+    postRender() {
         $('.showdown').each((i, block) => {
             let element = $(block);
 

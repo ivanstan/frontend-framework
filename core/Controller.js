@@ -1,38 +1,58 @@
+/**
+ *
+ */
 class Controller {
 
-    constructor() {
+    /**
+     *
+     * @param app
+     */
+    constructor(app) {
         this._defer = $.Deferred();
         this._template = '';
         this._route = {};
-        this._settings = {};
     }
 
+    /**
+     * Defer object getter. Getter of deferred object of async method.
+     *
+     * @returns {Defer}
+     */
     get deferred() {
         return this._defer;
     }
 
+    /**
+     * Template getter.
+     *
+     * @returns {String}
+     */
     get template() {
         return this._template;
     }
 
+    /**
+     *
+     * @param {String} template
+     */
     set template(template) {
         this._template = template;
     }
 
+    /**
+     *
+     * @returns {Route}
+     */
     get route() {
         return this._route;
     }
 
+    /**
+     *
+     * @param {Route} route
+     */
     set route(route) {
         this._route = route;
-    }
-
-    set settings(settings) {
-        this._settings = settings;
-    }
-
-    get settings() {
-        return this._settings;
     }
 
     /**
@@ -40,9 +60,9 @@ class Controller {
      * Further controller processing shall not be executed until defer object is either
      * resolver or rejected.
      *
-     * @returns Defer promise
+     * @returns {Promise} promise
      */
-    async() {
+    preRender() {
         this._defer.resolve();
         return this._defer.promise();
     }
@@ -50,7 +70,7 @@ class Controller {
     /**
      * Template is loaded. Use this method to attach event handlers.
      */
-    assign() {
+    postRender() {
 
     }
 
@@ -58,7 +78,7 @@ class Controller {
      * Called when controller another controller is called. Event handlers will be detached automatically,
      * use this method to cleanup additional elements added on page.
      */
-    resign() {
+    destructor() {
 
     }
 
