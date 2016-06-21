@@ -1,8 +1,9 @@
-var nodeFramework = require('../core/NodeFramework.js');
-var bootstrap = require('./../bootstrap.js');
-var configFramework = bootstrap.getConfig();
 
 module.exports = function (config) {
+    var nodeFramework = require('../vendor/frontend-framework/core/NodeFramework.js');
+    var fs = require('fs');
+    var appConfig = JSON.parse(fs.readFileSync('bootstrap.json', 'utf8'));
+
     var settings = {
 
         // base path that will be used to resolve all patterns (eg. files, exclude)
@@ -60,7 +61,9 @@ module.exports = function (config) {
         singleRun: false
     };
 
-    var libs = nodeFramework.resolveDependencies(configFramework['libs'], 'dependencies');
+    nodeFramework.setConfig(appConfig);
+
+    var libs = nodeFramework.resolveDependencies('dependencies');
     for (var i in libs) {
         if (libs[i].hasOwnProperty('js')) {
             for(var j in libs[i].js) {
