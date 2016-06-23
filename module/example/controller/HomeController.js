@@ -10,17 +10,16 @@ class HomeController extends Controller {
         }
     }
 
-    preRender() {
-        super.preRender();
+    preRender(defer) {
 
         if (this.app.isDebug()) {
             console.log(this.constructor.name + ' preRender called');
         }
 
-        return this._defer.promise();
+        return super.preRender(defer);
     }
 
-    postRender() {
+    postRender(defer) {
         $('.showdown').each((i, block) => {
             let element = $(block);
 
@@ -39,14 +38,17 @@ class HomeController extends Controller {
         if (this.app.isDebug()) {
             console.log(this.constructor.name + ' postRender called');
         }
+
+        return super.postRender(defer);
     }
 
-    destructor() {
+    destructor(defer) {
 
         if (this.app.isDebug()) {
             console.log(this.constructor.name + ' destructor called');
         }
 
+        return super.destructor(defer);
     }
 }
 

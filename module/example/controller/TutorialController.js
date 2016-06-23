@@ -5,7 +5,7 @@ class TutorialController extends Controller {
         this.converter = new showdown.Converter();
     }
 
-    postRender() {
+    postRender(defer) {
         $('.showdown').each((i, block) => {
             let element = $(block);
 
@@ -23,6 +23,8 @@ class TutorialController extends Controller {
             });
 
         });
+
+        return super.postRender(defer);
     }
 }
 

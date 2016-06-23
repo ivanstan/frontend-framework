@@ -88,50 +88,62 @@ class Framework {
      */
     navigate(route) {
         // call resign of previous controller
+        var destructorDefer = $.Deferred(),
+            destructorPromise;
+
         if (typeof this.current.controller !== 'undefined') {
-            this.current.controller.destructor();
+            destructorPromise = this.current.controller.destructor(destructorDefer);
+        } else {
+            destructorDefer.resolve();
+            destructorPromise = destructorDefer.promise();
         }
 
-        this.hook('preRender');
-        this.loadController(route)
-            .fail((jqXHR, textStatus, errorThrown) => {
+        destructorPromise.always(() => {
+            this.hook('preRender');
+            this.loadController(route)
+                .fail((jqXHR, textStatus, errorThrown) => {
 
-                let exception = AjaxException.create(errorThrown)
-                    .setJqXHR(jqXHR)
-                    .setTextStatus(textStatus)
-                    .setErrorThrown(errorThrown)
-                    .setRoute(route);
+                    let exception = AjaxException.create(errorThrown)
+                        .setJqXHR(jqXHR)
+                        .setTextStatus(textStatus)
+                        .setErrorThrown(errorThrown)
+                        .setRoute(route);
 
-                this.errorHandler(exception);
-                return null;
-            })
-            .done((template) => {
-                let controllerClass = window.classes[route.controllerClassName];
+                    this.errorHandler(exception);
+                    return null;
+                })
+                .done((template) => {
+                    let controllerClass = window.classes[route.controllerClassName];
 
-                if (typeof controllerClass == 'undefined') {
-                    this.notification('error', 'State controller missing' + route.controllerClassName);
-                }
+                    if (typeof controllerClass == 'undefined') {
+                        this.notification('error', 'State controller missing' + route.controllerClassName);
+                    }
 
-                var controller = new controllerClass(this);
+                    var controller = new controllerClass(this);
 
-                controller.template = template;
-                controller.route = route;
+                    controller.template = template;
+                    controller.route = route;
 
-                controller.preRender()
-                    .always(() => {
-                        let view = $(this.config.viewSelector);
+                    var preRenderDefer = new $.Deferred();
+                    controller.preRender(preRenderDefer)
+                        .always(() => {
+                            let view = $(this.config.viewSelector);
 
-                        view.html(controller.template);
-                        view.attr('class', route.pathname.replace('/', '-') + '-page');
+                            view.html(controller.template);
+                            view.attr('class', route.pathname.replace('/', '-') + '-page');
 
-                        this.current.assign = controller.postRender();
-                        this.current.controller = controller;
-                        this.hook('postRender');
-                    });
+                            var postRenderDefer = new $.Deferred();
+                            controller.postRender(postRenderDefer)
+                                .always(() => {
+                                    this.current.controller = controller;
+                                    this.hook('postRender');
+                                });
+                        });
 
 
-                return route;
-            });
+                    return route;
+                });
+        });
     }
 
     loadController(route) {

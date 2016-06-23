@@ -62,24 +62,23 @@ class Controller {
      *
      * @returns {Promise} promise
      */
-    preRender() {
-        this._defer.resolve();
-        return this._defer.promise();
+    preRender(defer) {
+        return defer.resolve().promise();
     }
 
     /**
      * Template is loaded. Use this method to attach event handlers.
      */
-    postRender() {
-
+    postRender(defer) {
+        return defer.resolve().promise();
     }
 
     /**
      * Called when controller another controller is called. Event handlers will be detached automatically,
      * use this method to cleanup additional elements added on page.
      */
-    destructor() {
-
+    destructor(defer) {
+        return defer.resolve().promise();
     }
 
 }

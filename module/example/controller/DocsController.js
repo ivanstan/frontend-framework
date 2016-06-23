@@ -5,7 +5,7 @@ class DocsController extends Controller {
         this.converter = new showdown.Converter();
     }
 
-    postRender() {
+    postRender(defer) {
         $('.showdown').each((i, block) => {
             let element = $(block);
 
@@ -28,6 +28,8 @@ class DocsController extends Controller {
                 });
             }
         });
+
+        return super.postRender(defer);
     }
 }
 
