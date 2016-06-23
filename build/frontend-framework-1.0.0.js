@@ -208,15 +208,15 @@ class Module {
     /**
      * Executed before state rendering process starts.
      */
-    preRender() {
-
+    preRender(defer) {
+        return defer.resolve().promise();
     }
 
     /**
      * Executed once state rendering is complete.
      */
-    postRender() {
-
+    postRender(defer) {
+        return defer.resolve().promise();
     }
 
 }
@@ -284,24 +284,23 @@ class Controller {
      *
      * @returns {Promise} promise
      */
-    preRender() {
-        this._defer.resolve();
-        return this._defer.promise();
+    preRender(defer) {
+        return defer.resolve().promise();
     }
 
     /**
      * Template is loaded. Use this method to attach event handlers.
      */
-    postRender() {
-
+    postRender(defer) {
+        return defer.resolve().promise();
     }
 
     /**
      * Called when controller another controller is called. Event handlers will be detached automatically,
      * use this method to cleanup additional elements added on page.
      */
-    destructor() {
-
+    destructor(defer) {
+        return defer.resolve().promise();
     }
 
 }
@@ -482,51 +481,67 @@ class Framework {
      * @param {Route} route
      */
     navigate(route) {
-        this.loadController(route)
-            .fail((jqXHR, textStatus, errorThrown) => {
+        // call resign of previous controller
+        var destructorDefer = $.Deferred(),
+            destructorPromise;
 
-                let exception = AjaxException.create(errorThrown)
-                    .setJqXHR(jqXHR)
-                    .setTextStatus(textStatus)
-                    .setErrorThrown(errorThrown)
-                    .setRoute(route);
+        if (typeof this.current.controller !== 'undefined') {
+            destructorPromise = this.current.controller.destructor(destructorDefer);
+        } else {
+            destructorDefer.resolve();
+            destructorPromise = destructorDefer.promise();
+        }
 
-                this.errorHandler(exception);
-                return null;
-            })
-            .done((template) => {
-                let controllerClass = window.classes[route.controllerClassName];
+        destructorPromise.always(() => {
+            this.hook('preRender')
+                .always(() => {
+                    this.loadController(route)
+                        .fail((jqXHR, textStatus, errorThrown) => {
 
-                if (typeof controllerClass == 'undefined') {
-                    this.notification('error', 'State controller missing' + route.controllerClassName);
-                }
+                            let exception = AjaxException.create(errorThrown)
+                                .setJqXHR(jqXHR)
+                                .setTextStatus(textStatus)
+                                .setErrorThrown(errorThrown)
+                                .setRoute(route);
 
-                var controller = new controllerClass(this);
+                            this.errorHandler(exception);
+                            return null;
+                        })
+                        .done((template) => {
+                            let controllerClass = window.classes[route.controllerClassName];
 
-                controller.template = template;
-                controller.route = route;
+                            if (typeof controllerClass == 'undefined') {
+                                this.notification('error', 'State controller missing' + route.controllerClassName);
+                            }
 
-                this.hook('preRender');
-                controller.preRender()
-                    .always(() => {
-                        // call resign of previous controller
-                        if (typeof this.current.controller !== 'undefined') {
-                            this.current.controller.destructor();
-                        }
+                            var controller = new controllerClass(this);
 
-                        let view = $(this.config.viewSelector);
+                            controller.template = template;
+                            controller.route = route;
 
-                        view.html(controller.template);
-                        view.attr('class', route.pathname.replace('/', '-') + '-page');
+                            var preRenderDefer = new $.Deferred();
+                            controller.preRender(preRenderDefer)
+                                .always(() => {
+                                    let view = $(this.config.viewSelector);
 
-                        this.current.assign = controller.postRender();
-                        this.current.controller = controller;
-                        this.hook('postRender');
-                    });
+                                    view.html(controller.template);
+                                    view.attr('class', route.pathname.replace('/', '-') + '-page');
+
+                                    var postRenderDefer = new $.Deferred();
+                                    controller.postRender(postRenderDefer)
+                                        .always(() => {
+                                            this.current.controller = controller;
+                                            this.hook('postRender').always(() => {
+
+                                            });
+                                        });
+                                });
 
 
-                return route;
-            });
+                            return route;
+                        });
+                });
+        });
     }
 
     loadController(route) {
@@ -584,17 +599,23 @@ class Framework {
      * @param {String} hookName
      */
     hook(hookName) {
+        var deferredArray = [];
+
         for (let i in this.modules) {
             let module = this.modules[i];
+            var defer = $.Deferred();
+            deferredArray.push(defer);
 
             if (typeof module[hookName] === 'function') {
                 try {
-                    module[hookName]();
+                    module[hookName](defer);
                 } catch (exception) {
                     this.notification('error', exception, 'Exception');
                 }
             }
         }
+
+        return $.when.apply($, deferredArray).promise();
     }
 
     errorHandler(exception) {
