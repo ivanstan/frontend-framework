@@ -4,6 +4,16 @@ class ExampleModule extends Module {
         super();
         this.app = app;
 
+
+
+
+
+        console.log(app);
+
+
+
+
+
         if(app.isDebug()) {
             console.log(this.constructor.name + ' constructor called');
         }

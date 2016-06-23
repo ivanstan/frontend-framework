@@ -1,18 +1,23 @@
 /**
  *
+ *
  */
+let _current = new WeakMap();
+let _modules = new WeakMap();
+
 class Framework {
 
     /**
      * Application bootstrap.
      *
-     * @param settings
+     * @param config
      */
     constructor(config) {
         window.classes = window.classes || {};
         this.config = config;
-        this.modules = {};
-        this.current = {};
+
+        _current.set(this, {});
+        _modules.set(this, {});
 
         this.loadModules()
             .done(() => {
@@ -40,28 +45,30 @@ class Framework {
      */
     loadModules() {
         var defer = $.Deferred();
+        var modules = _modules.get(this);
 
         var moduleCount = Object.keys(this.config.modules).length;
         var currentCount = 0;
 
         for (var moduleName in this.config.modules) {
-            var moduleClassName = Util.capitalize(moduleName) + 'Module';
+            if (!this.config.modules.hasOwnProperty(moduleName)) continue;
+
+            var moduleClassName = `${Util.capitalize(moduleName)}Module`;
 
             $.ajax({
-                url: 'module/' + moduleName + '/' + moduleClassName + '.js',
+                url: `module/${moduleName}/${moduleClassName}.js`,
                 success: (source, textStatus, jqXHR) => {
                     var moduleClass = window.classes[moduleClassName];
 
                     if (typeof moduleClass !== 'undefined') {
                         var module = new moduleClass(this);
 
-                        this.modules[moduleName] = module;
-
+                        modules[moduleName] = module;
+                        _modules.set(this, modules);
                         this.config['modules'][moduleName] = module.settings;
-                        // this.config['modules'].splice(this.config['modules'][moduleName], 1);
 
                         if (jqXHR.status !== 200) {
-                            defer.reject(jqXHR, textStatus, 'Error loading ' + moduleClassName);
+                            defer.reject(jqXHR, textStatus, `Error loading ${moduleClassName}`);
                         }
 
                         if (currentCount == moduleCount) {
@@ -87,12 +94,15 @@ class Framework {
      * @param {Route} route
      */
     navigate(route) {
+        this.route = route;
+        var current = _current.get(this);
+
         // call resign of previous controller
         var destructorDefer = $.Deferred(),
             destructorPromise;
 
-        if (typeof this.current.controller !== 'undefined') {
-            destructorPromise = this.current.controller.destructor(destructorDefer);
+        if (typeof current.destructor === 'function') {
+            destructorPromise = current.destructor(destructorDefer);
         } else {
             destructorDefer.resolve();
             destructorPromise = destructorDefer.promise();
@@ -117,7 +127,7 @@ class Framework {
                             let controllerClass = window.classes[route.controllerClassName];
 
                             if (typeof controllerClass == 'undefined') {
-                                this.notification('error', 'State controller missing' + route.controllerClassName);
+                                this.notification('error', `State controller missing ${route.controllerClassName}`);
                             }
 
                             var controller = new controllerClass(this);
@@ -136,7 +146,7 @@ class Framework {
                                     var postRenderDefer = new $.Deferred();
                                     controller.postRender(postRenderDefer)
                                         .always(() => {
-                                            this.current.controller = controller;
+                                            _current.set(this, controller);
                                             this.hook('postRender').always(() => {
 
                                             });
@@ -152,21 +162,21 @@ class Framework {
 
     loadController(route) {
         var defer = $.Deferred(),
-            viewFile = 'module/' + route.module + '/view/' + route.controller + '.html';
+            viewFile = `module/${route.module}/view/${route.controller}.html`;
 
         this.importHtml(viewFile)
             .done((link) => {
                 var template = Util.link2html(link);
 
                 if (template == false) {
-                    this.notification('error', 'File ' + viewFile + ' is not template');
+                    this.notification('error', `File ${viewFile} is not template`);
                     defer.reject();
                 }
 
                 defer.resolve(template);
             })
             .fail(() => {
-                this.notification('error', 'Error loading ' + viewFile);
+                this.notification('error', `Error loading ${viewFile}`);
             });
 
         return defer.promise();
@@ -174,7 +184,7 @@ class Framework {
 
     importHtml(href) {
         var defer = $.Deferred(),
-            link = $('head [href="' + href + '"]');
+            link = $(`head [href="${href}"]`);
 
         // ToDo: Check if this if can be avoided
         if (link.length > 0) {
@@ -182,7 +192,7 @@ class Framework {
             return defer.promise();
         }
 
-        var link = document.createElement('link');
+        link = document.createElement('link');
         link.rel = 'import';
         link.href = href;
         link.setAttribute('async', '');
@@ -190,7 +200,7 @@ class Framework {
             defer.resolve($(link));
         };
         link.onerror = (event) => {
-            this.notification('error', 'Unable to load: ' + href);
+            this.notification('error', `Unable to load: ${href}`);
             defer.reject(event);
         };
 
@@ -205,10 +215,13 @@ class Framework {
      * @param {String} hookName
      */
     hook(hookName) {
-        var deferredArray = [];
+        var deferredArray = [],
+            modules = _modules.get(this);
 
-        for (let i in this.modules) {
-            let module = this.modules[i];
+        for (let i in modules) {
+            if (!modules.hasOwnProperty(i)) continue;
+
+            let module = modules[i];
             var defer = $.Deferred();
             deferredArray.push(defer);
 

@@ -8,18 +8,7 @@ class Controller {
      * @param app
      */
     constructor(app) {
-        this._defer = $.Deferred();
         this._template = '';
-        this._route = {};
-    }
-
-    /**
-     * Defer object getter. Getter of deferred object of async method.
-     *
-     * @returns {Defer}
-     */
-    get deferred() {
-        return this._defer;
     }
 
     /**
@@ -37,22 +26,6 @@ class Controller {
      */
     set template(template) {
         this._template = template;
-    }
-
-    /**
-     *
-     * @returns {Route}
-     */
-    get route() {
-        return this._route;
-    }
-
-    /**
-     *
-     * @param {Route} route
-     */
-    set route(route) {
-        this._route = route;
     }
 
     /**

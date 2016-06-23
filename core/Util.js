@@ -4,25 +4,6 @@ class Util {
         return string[0].toUpperCase() + string.slice(1);
     }
 
-    static loading(loading) {
-        if (loading == null) {
-            loading = true;
-        }
-
-        var loader = $('#ajax-loader');
-        if (loader.length == 0) {
-            return loading;
-        }
-
-        if (loading) {
-            loader.show();
-            return loading;
-        }
-
-        loader.hide();
-        return loading;
-    }
-
     static link2html(link) {
         var template = $(link[0].import).find('template');
 
@@ -31,30 +12,6 @@ class Util {
         }
 
         return template.html();
-    }
-
-    static toggleFullScreen() {
-        if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
-            } else if (document.documentElement.msRequestFullscreen) {
-                document.documentElement.msRequestFullscreen();
-            } else if (document.documentElement.mozRequestFullScreen) {
-                document.documentElement.mozRequestFullScreen();
-            } else if (document.documentElement.webkitRequestFullscreen) {
-                document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-            }
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
-            } else if (document.mozCancelFullScreen) {
-                document.mozCancelFullScreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            }
-        }
     }
 
     static require(dependencies) {
