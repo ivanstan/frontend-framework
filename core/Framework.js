@@ -99,49 +99,53 @@ class Framework {
         }
 
         destructorPromise.always(() => {
-            this.hook('preRender');
-            this.loadController(route)
-                .fail((jqXHR, textStatus, errorThrown) => {
+            this.hook('preRender')
+                .always(() => {
+                    this.loadController(route)
+                        .fail((jqXHR, textStatus, errorThrown) => {
 
-                    let exception = AjaxException.create(errorThrown)
-                        .setJqXHR(jqXHR)
-                        .setTextStatus(textStatus)
-                        .setErrorThrown(errorThrown)
-                        .setRoute(route);
+                            let exception = AjaxException.create(errorThrown)
+                                .setJqXHR(jqXHR)
+                                .setTextStatus(textStatus)
+                                .setErrorThrown(errorThrown)
+                                .setRoute(route);
 
-                    this.errorHandler(exception);
-                    return null;
-                })
-                .done((template) => {
-                    let controllerClass = window.classes[route.controllerClassName];
+                            this.errorHandler(exception);
+                            return null;
+                        })
+                        .done((template) => {
+                            let controllerClass = window.classes[route.controllerClassName];
 
-                    if (typeof controllerClass == 'undefined') {
-                        this.notification('error', 'State controller missing' + route.controllerClassName);
-                    }
+                            if (typeof controllerClass == 'undefined') {
+                                this.notification('error', 'State controller missing' + route.controllerClassName);
+                            }
 
-                    var controller = new controllerClass(this);
+                            var controller = new controllerClass(this);
 
-                    controller.template = template;
-                    controller.route = route;
+                            controller.template = template;
+                            controller.route = route;
 
-                    var preRenderDefer = new $.Deferred();
-                    controller.preRender(preRenderDefer)
-                        .always(() => {
-                            let view = $(this.config.viewSelector);
-
-                            view.html(controller.template);
-                            view.attr('class', route.pathname.replace('/', '-') + '-page');
-
-                            var postRenderDefer = new $.Deferred();
-                            controller.postRender(postRenderDefer)
+                            var preRenderDefer = new $.Deferred();
+                            controller.preRender(preRenderDefer)
                                 .always(() => {
-                                    this.current.controller = controller;
-                                    this.hook('postRender');
+                                    let view = $(this.config.viewSelector);
+
+                                    view.html(controller.template);
+                                    view.attr('class', route.pathname.replace('/', '-') + '-page');
+
+                                    var postRenderDefer = new $.Deferred();
+                                    controller.postRender(postRenderDefer)
+                                        .always(() => {
+                                            this.current.controller = controller;
+                                            this.hook('postRender').always(() => {
+
+                                            });
+                                        });
                                 });
+
+
+                            return route;
                         });
-
-
-                    return route;
                 });
         });
     }
@@ -201,17 +205,23 @@ class Framework {
      * @param {String} hookName
      */
     hook(hookName) {
+        var deferredArray = [];
+
         for (let i in this.modules) {
             let module = this.modules[i];
+            var defer = $.Deferred();
+            deferredArray.push(defer);
 
             if (typeof module[hookName] === 'function') {
                 try {
-                    module[hookName]();
+                    module[hookName](defer);
                 } catch (exception) {
                     this.notification('error', exception, 'Exception');
                 }
             }
         }
+
+        return $.when.apply($, deferredArray).promise();
     }
 
     errorHandler(exception) {

@@ -10,12 +10,13 @@ class ExampleModule extends Module {
 
     }
 
-    preRender() {
+    preRender(defer) {
 
         if(this.app.isDebug()) {
             console.log(this.constructor.name + ' preRender hook called');
         }
 
+        return super.preRender(defer);
     }
 
     postRender() {
@@ -24,6 +25,7 @@ class ExampleModule extends Module {
             console.log(this.constructor.name + ' postRender hook called');
         }
 
+        return super.postRender(defer);
     }
 
 }

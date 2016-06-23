@@ -14,15 +14,15 @@ class Module {
     /**
      * Executed before state rendering process starts.
      */
-    preRender() {
-
+    preRender(defer) {
+        return defer.resolve().promise();
     }
 
     /**
      * Executed once state rendering is complete.
      */
-    postRender() {
-
+    postRender(defer) {
+        return defer.resolve().promise();
     }
 
 }
