@@ -15,6 +15,8 @@ class Framework {
     constructor(config) {
         window.classes = window.classes || {};
         this.config = config;
+        this.routeMap = {};
+        this.route = {};
 
         _current.set(this, {});
         _modules.set(this, {});
@@ -23,14 +25,8 @@ class Framework {
             .done(() => {
                 $(window).trigger('hashchange');
             })
-            .fail((jqXHR, textStatus, errorThrown) => {
-
-                let exception = AjaxException.create('Error loading modules')
-                    .setJqXHR(jqXHR)
-                    .setTextStatus(textStatus)
-                    .setErrorThrown(errorThrown);
-
-                this.errorHandler(exception);
+            .fail((message) => {
+                this.notification('error', message);
             });
 
         $(window).on('hashchange', () => {
@@ -58,28 +54,30 @@ class Framework {
             $.ajax({
                 url: `module/${moduleName}/${moduleClassName}.js`,
                 success: (source, textStatus, jqXHR) => {
-                    var moduleClass = window.classes[moduleClassName];
-
-                    if (typeof moduleClass !== 'undefined') {
-                        var module = new moduleClass(this);
-
-                        modules[moduleName] = module;
-                        _modules.set(this, modules);
-                        this.config['modules'][moduleName] = module.settings;
-
-                        if (jqXHR.status !== 200) {
-                            defer.reject(jqXHR, textStatus, `Error loading ${moduleClassName}`);
-                        }
-
-                        if (currentCount == moduleCount) {
-                            defer.resolve();
-                        }
+                    if (jqXHR.status !== 200) {
+                        defer.reject(`Error loading: ${moduleClassName}`);
                     }
 
+                    var moduleClass = window.classes[moduleClassName];
 
+                    if (typeof moduleClass === 'undefined') {
+                        defer.reject(`Invalid module class: ${moduleClass}`);
+                        return false;
+                    }
+
+                    var module = new moduleClass(this);
+                    this.config['modules'][moduleName] = module.settings;
+                    this.routeMap = $.extend(this.routeMap, module.routes);
+
+                    modules[moduleName] = module;
+                    _modules.set(this, modules);
+
+                    if (currentCount == moduleCount) {
+                        defer.resolve();
+                    }
                 },
                 error: (jqXHR, textStatus, errorThrown) => {
-                    defer.reject(jqXHR, textStatus, errorThrown);
+                    defer.reject(textStatus);
                 }
             });
             currentCount++;
@@ -164,25 +162,24 @@ class Framework {
         var defer = $.Deferred(),
             viewFile = `module/${route.module}/view/${route.controller}.html`;
 
-        this.importHtml(viewFile)
+        this.loadView(viewFile)
             .done((link) => {
                 var template = Util.link2html(link);
 
                 if (template == false) {
-                    this.notification('error', `File ${viewFile} is not template`);
-                    defer.reject();
+                    return defer.reject(`File ${viewFile} is not template`).promise();
                 }
 
                 defer.resolve(template);
             })
             .fail(() => {
-                this.notification('error', `Error loading ${viewFile}`);
+                defer.reject(`Error loading ${viewFile}`);
             });
 
         return defer.promise();
     }
 
-    importHtml(href) {
+    loadView(href) {
         var defer = $.Deferred(),
             link = $(`head [href="${href}"]`);
 
@@ -200,6 +197,11 @@ class Framework {
             defer.resolve($(link));
         };
         link.onerror = (event) => {
+
+            if(this.debug) {
+                console.log(event);
+            }
+
             this.notification('error', `Unable to load: ${href}`);
             defer.reject(event);
         };
@@ -252,7 +254,10 @@ class Framework {
      * @param {String} title
      * @param {String} message
      */
-    notification(type, title, message) {
+    notification(type, message, title = null) {
+
+        // add this https://stackoverflow.com/questions/2271156/chrome-desktop-notification-example
+
         if (typeof window.toastr == 'object' && typeof window['toastr'][type] == 'function') {
 
             if (!this.isDebug() && type === 'error') {
@@ -269,7 +274,7 @@ class Framework {
      * @returns {Boolean}
      */
     isDebug() {
-        return location.pathname.indexOf('index-dev.html') > 0
+        return location.pathname.indexOf('index-dev.html') > 0;
     }
 
 }

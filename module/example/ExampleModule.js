@@ -3,16 +3,10 @@ class ExampleModule extends Module {
     constructor(app) {
         super();
         this.app = app;
-
-
-
-
-
-        console.log(app);
-
-
-
-
+        this.routes = {
+            '/': '',
+            'docs': 'DocsController'
+        };
 
         if(app.isDebug()) {
             console.log(this.constructor.name + ' constructor called');
