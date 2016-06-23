@@ -115,9 +115,15 @@ with <span class="text-muted">.js</span> extension.
             this.settings = {};
         }
 
-        postRender() {
+        preRender(defer) {
+            return super.preRender(defer);
+        }
+
+        postRender(defer) {
             $("[data-toggle='tooltip']").tooltip();
             $("[data-toggle='popover']").popover();
+
+            return super.postRender(defer);
         }
     }
 
@@ -186,14 +192,14 @@ class BarController extends Controller {
      * Called after html has been rendered on page. Attach event handlers here.
      */
     postRender() {
-
+        return super.postRender(defer);
     }
 
     /**
      * Called before navigating to next state. Clear mess your state has made here.
      */
-    destructor() {
-
+    destructor(defer) {
+        return super.destructor(defer);
     }
 
 }

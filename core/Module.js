@@ -13,6 +13,9 @@ class Module {
 
     /**
      * Executed before state rendering process starts.
+     *
+     * @param defer
+     * @returns Promise
      */
     preRender(defer) {
         return defer.resolve().promise();
@@ -20,6 +23,9 @@ class Module {
 
     /**
      * Executed once state rendering is complete.
+     *
+     * @param defer
+     * @returns {*}
      */
     postRender(defer) {
         return defer.resolve().promise();
