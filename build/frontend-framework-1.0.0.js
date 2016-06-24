@@ -4,25 +4,6 @@ class Util {
         return string[0].toUpperCase() + string.slice(1);
     }
 
-    static loading(loading) {
-        if (loading == null) {
-            loading = true;
-        }
-
-        var loader = $('#ajax-loader');
-        if (loader.length == 0) {
-            return loading;
-        }
-
-        if (loading) {
-            loader.show();
-            return loading;
-        }
-
-        loader.hide();
-        return loading;
-    }
-
     static link2html(link) {
         var template = $(link[0].import).find('template');
 
@@ -31,30 +12,6 @@ class Util {
         }
 
         return template.html();
-    }
-
-    static toggleFullScreen() {
-        if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
-            } else if (document.documentElement.msRequestFullscreen) {
-                document.documentElement.msRequestFullscreen();
-            } else if (document.documentElement.mozRequestFullScreen) {
-                document.documentElement.mozRequestFullScreen();
-            } else if (document.documentElement.webkitRequestFullscreen) {
-                document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-            }
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
-            } else if (document.mozCancelFullScreen) {
-                document.mozCancelFullScreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            }
-        }
     }
 
     static require(dependencies) {
@@ -207,6 +164,9 @@ class Module {
 
     /**
      * Executed before state rendering process starts.
+     *
+     * @param defer
+     * @returns Promise
      */
     preRender(defer) {
         return defer.resolve().promise();
@@ -214,6 +174,9 @@ class Module {
 
     /**
      * Executed once state rendering is complete.
+     *
+     * @param defer
+     * @returns {*}
      */
     postRender(defer) {
         return defer.resolve().promise();
@@ -230,18 +193,7 @@ class Controller {
      * @param app
      */
     constructor(app) {
-        this._defer = $.Deferred();
         this._template = '';
-        this._route = {};
-    }
-
-    /**
-     * Defer object getter. Getter of deferred object of async method.
-     *
-     * @returns {Defer}
-     */
-    get deferred() {
-        return this._defer;
     }
 
     /**
@@ -262,22 +214,6 @@ class Controller {
     }
 
     /**
-     *
-     * @returns {Route}
-     */
-    get route() {
-        return this._route;
-    }
-
-    /**
-     *
-     * @param {Route} route
-     */
-    set route(route) {
-        this._route = route;
-    }
-
-    /**
      * Override this method in your controller to process asynchronous requests.
      * Further controller processing shall not be executed until defer object is either
      * resolver or rejected.
@@ -290,14 +226,21 @@ class Controller {
 
     /**
      * Template is loaded. Use this method to attach event handlers.
+     *
+     * @param defer
+     * @returns {Promise}
      */
     postRender(defer) {
         return defer.resolve().promise();
     }
 
     /**
+     *
      * Called when controller another controller is called. Event handlers will be detached automatically,
      * use this method to cleanup additional elements added on page.
+     *
+     * @param defer
+     * @returns {Promise}
      */
     destructor(defer) {
         return defer.resolve().promise();
@@ -394,32 +337,33 @@ Storage.getObject = function(name, def) {
 
 /**
  *
+ *
  */
+let _current = new WeakMap();
+let _modules = new WeakMap();
+
 class Framework {
 
     /**
      * Application bootstrap.
      *
-     * @param settings
+     * @param config
      */
     constructor(config) {
         window.classes = window.classes || {};
         this.config = config;
-        this.modules = {};
-        this.current = {};
+        this.routeMap = {};
+        this.route = {};
+
+        _current.set(this, {});
+        _modules.set(this, {});
 
         this.loadModules()
             .done(() => {
                 $(window).trigger('hashchange');
             })
-            .fail((jqXHR, textStatus, errorThrown) => {
-
-                let exception = AjaxException.create('Error loading modules')
-                    .setJqXHR(jqXHR)
-                    .setTextStatus(textStatus)
-                    .setErrorThrown(errorThrown);
-
-                this.errorHandler(exception);
+            .fail((message) => {
+                this.notification('error', message);
             });
 
         $(window).on('hashchange', () => {
@@ -434,39 +378,43 @@ class Framework {
      */
     loadModules() {
         var defer = $.Deferred();
+        var modules = _modules.get(this);
 
         var moduleCount = Object.keys(this.config.modules).length;
         var currentCount = 0;
 
         for (var moduleName in this.config.modules) {
-            var moduleClassName = Util.capitalize(moduleName) + 'Module';
+            if (!this.config.modules.hasOwnProperty(moduleName)) continue;
+
+            var moduleClassName = `${Util.capitalize(moduleName)}Module`;
 
             $.ajax({
-                url: 'module/' + moduleName + '/' + moduleClassName + '.js',
+                url: `module/${moduleName}/${moduleClassName}.js`,
                 success: (source, textStatus, jqXHR) => {
-                    var moduleClass = window.classes[moduleClassName];
-
-                    if (typeof moduleClass !== 'undefined') {
-                        var module = new moduleClass(this);
-
-                        this.modules[moduleName] = module;
-
-                        this.config['modules'][moduleName] = module.settings;
-                        // this.config['modules'].splice(this.config['modules'][moduleName], 1);
-
-                        if (jqXHR.status !== 200) {
-                            defer.reject(jqXHR, textStatus, 'Error loading ' + moduleClassName);
-                        }
-
-                        if (currentCount == moduleCount) {
-                            defer.resolve();
-                        }
+                    if (jqXHR.status !== 200) {
+                        defer.reject(`Error loading: ${moduleClassName}`);
                     }
 
+                    var moduleClass = window.classes[moduleClassName];
 
+                    if (typeof moduleClass === 'undefined') {
+                        defer.reject(`Invalid module class: ${moduleClass}`);
+                        return false;
+                    }
+
+                    var module = new moduleClass(this);
+                    this.config['modules'][moduleName] = module.settings;
+                    this.routeMap = $.extend(this.routeMap, module.routes);
+
+                    modules[moduleName] = module;
+                    _modules.set(this, modules);
+
+                    if (currentCount == moduleCount) {
+                        defer.resolve();
+                    }
                 },
                 error: (jqXHR, textStatus, errorThrown) => {
-                    defer.reject(jqXHR, textStatus, errorThrown);
+                    defer.reject(textStatus);
                 }
             });
             currentCount++;
@@ -481,12 +429,15 @@ class Framework {
      * @param {Route} route
      */
     navigate(route) {
+        this.route = route;
+        var current = _current.get(this);
+
         // call resign of previous controller
         var destructorDefer = $.Deferred(),
             destructorPromise;
 
-        if (typeof this.current.controller !== 'undefined') {
-            destructorPromise = this.current.controller.destructor(destructorDefer);
+        if (typeof current.destructor === 'function') {
+            destructorPromise = current.destructor(destructorDefer);
         } else {
             destructorDefer.resolve();
             destructorPromise = destructorDefer.promise();
@@ -511,7 +462,7 @@ class Framework {
                             let controllerClass = window.classes[route.controllerClassName];
 
                             if (typeof controllerClass == 'undefined') {
-                                this.notification('error', 'State controller missing' + route.controllerClassName);
+                                this.notification('error', `State controller missing ${route.controllerClassName}`);
                             }
 
                             var controller = new controllerClass(this);
@@ -530,7 +481,7 @@ class Framework {
                                     var postRenderDefer = new $.Deferred();
                                     controller.postRender(postRenderDefer)
                                         .always(() => {
-                                            this.current.controller = controller;
+                                            _current.set(this, controller);
                                             this.hook('postRender').always(() => {
 
                                             });
@@ -546,29 +497,28 @@ class Framework {
 
     loadController(route) {
         var defer = $.Deferred(),
-            viewFile = 'module/' + route.module + '/view/' + route.controller + '.html';
+            viewFile = `module/${route.module}/view/${route.controller}.html`;
 
-        this.importHtml(viewFile)
+        this.loadView(viewFile)
             .done((link) => {
                 var template = Util.link2html(link);
 
                 if (template == false) {
-                    this.notification('error', 'File ' + viewFile + ' is not template');
-                    defer.reject();
+                    return defer.reject(`File ${viewFile} is not template`).promise();
                 }
 
                 defer.resolve(template);
             })
             .fail(() => {
-                this.notification('error', 'Error loading ' + viewFile);
+                defer.reject(`Error loading ${viewFile}`);
             });
 
         return defer.promise();
     }
 
-    importHtml(href) {
+    loadView(href) {
         var defer = $.Deferred(),
-            link = $('head [href="' + href + '"]');
+            link = $(`head [href="${href}"]`);
 
         // ToDo: Check if this if can be avoided
         if (link.length > 0) {
@@ -576,7 +526,7 @@ class Framework {
             return defer.promise();
         }
 
-        var link = document.createElement('link');
+        link = document.createElement('link');
         link.rel = 'import';
         link.href = href;
         link.setAttribute('async', '');
@@ -584,7 +534,12 @@ class Framework {
             defer.resolve($(link));
         };
         link.onerror = (event) => {
-            this.notification('error', 'Unable to load: ' + href);
+
+            if(this.debug) {
+                console.log(event);
+            }
+
+            this.notification('error', `Unable to load: ${href}`);
             defer.reject(event);
         };
 
@@ -599,10 +554,13 @@ class Framework {
      * @param {String} hookName
      */
     hook(hookName) {
-        var deferredArray = [];
+        var deferredArray = [],
+            modules = _modules.get(this);
 
-        for (let i in this.modules) {
-            let module = this.modules[i];
+        for (let i in modules) {
+            if (!modules.hasOwnProperty(i)) continue;
+
+            let module = modules[i];
             var defer = $.Deferred();
             deferredArray.push(defer);
 
@@ -633,7 +591,10 @@ class Framework {
      * @param {String} title
      * @param {String} message
      */
-    notification(type, title, message) {
+    notification(type, message, title = null) {
+
+        // add this https://stackoverflow.com/questions/2271156/chrome-desktop-notification-example
+
         if (typeof window.toastr == 'object' && typeof window['toastr'][type] == 'function') {
 
             if (!this.isDebug() && type === 'error') {
@@ -650,7 +611,7 @@ class Framework {
      * @returns {Boolean}
      */
     isDebug() {
-        return location.pathname.indexOf('index-dev.html') > 0
+        return location.pathname.indexOf('index-dev.html') > 0;
     }
 
 }

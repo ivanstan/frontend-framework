@@ -78,7 +78,7 @@ gulp.task('development', function () {
 gulp.task('production', function () {
 
     gulp.src('assets/index.html')
-        .pipe(inject(gulp.src(['assets/javascript.js', 'assets/styles.css'], {read: false}), {
+        .pipe(inject(gulp.src(['build/frontend-framework-1.0.0.js', 'assets/javascript.js', 'assets/styles.css'], {read: false}), {
             relative: false,
             addRootSlash: false
         }))

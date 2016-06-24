@@ -9,7 +9,7 @@
 * * *
 
 ## Class: Framework
-Application bootstrap.
+
 
 
 ## Class: Framework
