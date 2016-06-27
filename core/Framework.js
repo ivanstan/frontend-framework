@@ -30,6 +30,13 @@ class Framework {
             });
 
         $(window).on('hashchange', () => {
+
+
+
+
+
+
+
             this.navigate(new Route(window.location.hash));
         });
     };
@@ -67,6 +74,10 @@ class Framework {
 
                     var module = new moduleClass(this);
                     this.config['modules'][moduleName] = module.settings;
+
+                    for(var i in module.routes) {
+                        module.routes[i]['module'] = moduleName;
+                    }
                     this.routeMap = $.extend(this.routeMap, module.routes);
 
                     modules[moduleName] = module;

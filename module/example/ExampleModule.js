@@ -4,11 +4,15 @@ class ExampleModule extends Module {
         super();
         this.app = app;
         this.routes = {
-            '/': '',
-            'docs': 'DocsController'
+            '/': {
+                controller: 'DocsController'
+            },
+            'docs': {
+                controller: 'DocsController'
+            }
         };
 
-        if(app.isDebug()) {
+        if (app.isDebug()) {
             console.log(this.constructor.name + ' constructor called');
         }
 
@@ -16,7 +20,7 @@ class ExampleModule extends Module {
 
     preRender(defer) {
 
-        if(this.app.isDebug()) {
+        if (this.app.isDebug()) {
             console.log(this.constructor.name + ' preRender hook called');
         }
 
@@ -25,7 +29,7 @@ class ExampleModule extends Module {
 
     postRender() {
 
-        if(this.app.isDebug()) {
+        if (this.app.isDebug()) {
             console.log(this.constructor.name + ' postRender hook called');
         }
 

@@ -33,5 +33,4 @@ class Route {
 
         return route;
     }
-
 }
