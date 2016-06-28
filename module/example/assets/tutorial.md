@@ -25,42 +25,69 @@ graph LR;
     ConPreRender-->ModPostRender(Module postRender)
 </div>
 
-##Directory structure
+##Project structure
 <table class="table">
     <tbody>
-    <tr>
-        <td width="160px"><i class="fa fa-folder-open" aria-hidden="true"></i> assets</td>
-        <td>Assets folder should contain images, fonts, and everything else that is not JavaScript or
-            stylesheet.
-            Built versions of JavaScripts and sass files will be stored here. Assets folder also holds
-            index.html which
-            is template into which assets will be injected and later used for building index.html and
-            index-dev.html files
-            in the root of project.
-        </td>
-    </tr>
-    <tr>
-        <td><i class="fa fa-folder-open" aria-hidden="true"></i> build</td>
-        <td>Framework will be built here into single file.</td>
-    </tr>
-    <tr>
-        <td><i class="fa fa-folder-open" aria-hidden="true"></i> core</td>
-        <td>Core of the framework, not intended to be modified by end developer.</td>
-    </tr>
-    <tr>
-        <td><i class="fa fa-folder-open" aria-hidden="true"></i> module</td>
-        <td>This is where all your code should go, organized in modules</td>
-    </tr>
-    <tr>
-        <td><i class="fa fa-folder-open" aria-hidden="true"></i> tests</td>
-        <td>Framework tests, running on Karma and Jasmine.</td>
-    </tr>
-    <tr>
-        <td><i class="fa fa-folder-open" aria-hidden="true"></i> vendor</td>
-        <td>Place where 3rd party dependencies should hang out, unless they are somewhere on cdn.</td>
-    </tr>
+        <tr>
+            <td width="220px"><i class="fa fa-folder-open-o" aria-hidden="true"></i> assets</td>
+            <td>Assets folder should contain images, fonts and built versions of javascripts and stylesheets files will be stored here
+            </td>
+        </tr>
+        <tr>
+            <td width="220px"><i class="fa fa-file-text-o" aria-hidden="true" style="padding-left: 20px;"></i> index.html</td>
+            <td>Template into which assets will be injected and later used for building <span class="file">index.html</span> and <span class="file">index-dev.html</span> files in the root of project</td>
+        </tr>
+        <tr>
+            <td><i class="fa fa-folder-o" aria-hidden="true"></i> build</td>
+            <td>Framework will be built here into single file</td>
+        </tr>
+        <tr>
+            <td><i class="fa fa-folder-o" aria-hidden="true"></i> core</td>
+            <td>Core of the framework, not intended to be modified by end developer</td>
+        </tr>
+        <tr>
+            <td><i class="fa fa-folder-open-o" aria-hidden="true"></i> module</td>
+            <td>This is where all your code should go, organized in modules</td>
+        </tr>
+        <tr>
+            <td width="220px"><i class="fa fa-folder-open-o" aria-hidden="true" style="padding-left: 20px;"></i> example</td>
+            <td>Example module</td>
+        </tr>
+        <tr>
+            <td width="220px"><i class="fa fa-folder-open-o" aria-hidden="true" style="padding-left: 40px;"></i> controller</td>
+            <td>Module controllers <code>javascript</code></td>
+        </tr>
+        <tr>
+            <td width="220px"><i class="fa fa-folder-open-o" aria-hidden="true" style="padding-left: 40px;"></i> view</td>
+            <td>Module views <code>html</code></td>
+        </tr>
+        <tr>
+            <td width="220px"><i class="fa fa-file-code-o" aria-hidden="true" style="padding-left: 40px;"></i> ExampleModule.js</td>
+            <td>Module class</td>
+        </tr>
+        <tr>
+            <td><i class="fa fa-folder-o" aria-hidden="true"></i> tests</td>
+            <td>Framework tests, running on Karma and Jasmine.</td>
+        </tr>
+        <tr>
+            <td><i class="fa fa-folder-o" aria-hidden="true"></i> vendor</td>
+            <td>Place where 3rd party dependencies should hang out, unless they are somewhere on cdn</td>
+        </tr>
+        <tr>
+            <td width="220px"><i class="fa fa-text-o" aria-hidden="true"></i> index.html</td>
+            <td>Production version of application. Debugging off. Using minimized versions of resources</td>
+        </tr>
+        <tr>
+            <td width="220px"><i class="fa fa-text-o" aria-hidden="true"></i> index-dev.html</td>
+            <td>Development version of application. Debugging on. Using full versions of resources</td>
+        </tr>
+        <tr>
+            <td width="220px"><i class="fa fa-file-code-o" aria-hidden="true"></i> bootstrap.json</td>
+            <td>Configuration file</td>
+        </tr>
     </tbody>
 </table>
+
 
 ##Configuration
 
@@ -70,7 +97,7 @@ Application is intended to be configured in <span class="file">bootstrap.json</s
     <tbody>
     <tr>
         <td><code>modules</code></td>
-        <td width="160px"><code>
+        <td width="220px"><code>
         {
             'foo': {}, 
             'test': {}
@@ -222,4 +249,3 @@ window.classes['BarController'] = BarController;
 ```
 
 Now our state is ready and we can finally access it via its appropriate url: <span class="url">https://example.com/application/#foo/bar</span>
-
