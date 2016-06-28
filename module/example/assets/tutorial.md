@@ -1,8 +1,8 @@
 ##Routing
 
 Application resources are organized in states which are routed in scheme <span class="url">#module-name/state-name</span>
-Here is an example url which will navigate to state <code>bar</code> inside <code>foo</code> module:
-<span class="url">https://example.com/application/#foo/bar</span>
+Here is an example url which will navigate to state <code>foo</code> inside <code>example</code> module:
+<span class="url">https://example.com/application/#example/foo</span>
 
 ## Application Lifecycle
 
@@ -38,6 +38,14 @@ graph LR;
             <td>Template into which assets will be injected and later used for building <span class="file">index.html</span> and <span class="file">index-dev.html</span> files in the root of project</td>
         </tr>
         <tr>
+            <td width="220px"><i class="fa fa-file-code-o" aria-hidden="true" style="padding-left: 20px;"></i> javascript.js</td>
+            <td>Minimized version of javascript build from <code>libs</code> section of <span class="file">bootstrap.json</span></td>
+        </tr>
+        <tr>
+            <td width="220px"><i class="fa fa-file-text-o" aria-hidden="true" style="padding-left: 20px;"></i> styles.css</td>
+            <td>Minimized version of stylesheets built from <span class="file">sass</span> files thought project</td>
+        </tr>
+        <tr>
             <td><i class="fa fa-folder-o" aria-hidden="true"></i> build</td>
             <td>Framework will be built here into single file</td>
         </tr>
@@ -55,11 +63,19 @@ graph LR;
         </tr>
         <tr>
             <td width="220px"><i class="fa fa-folder-open-o" aria-hidden="true" style="padding-left: 40px;"></i> controller</td>
-            <td>Module controllers <code>javascript</code></td>
+            <td>Module controllers</td>
+        </tr>
+        <tr>
+            <td width="220px"><i class="fa fa-file-code-o" aria-hidden="true" style="padding-left: 60px;"></i> FooController.js</td>
+            <td>State controller</td>
         </tr>
         <tr>
             <td width="220px"><i class="fa fa-folder-open-o" aria-hidden="true" style="padding-left: 40px;"></i> view</td>
-            <td>Module views <code>html</code></td>
+            <td>Module views</td>
+        </tr>
+        <tr>
+            <td width="220px"><i class="fa fa-file-text-o" aria-hidden="true" style="padding-left: 60px;"></i> foo.html</td>
+            <td>State view</td>
         </tr>
         <tr>
             <td width="220px"><i class="fa fa-file-code-o" aria-hidden="true" style="padding-left: 40px;"></i> ExampleModule.js</td>
@@ -74,11 +90,11 @@ graph LR;
             <td>Place where 3rd party dependencies should hang out, unless they are somewhere on cdn</td>
         </tr>
         <tr>
-            <td width="220px"><i class="fa fa-text-o" aria-hidden="true"></i> index.html</td>
+            <td width="220px"><i class="fa fa-file-text-o" aria-hidden="true"></i> index.html</td>
             <td>Production version of application. Debugging off. Using minimized versions of resources</td>
         </tr>
         <tr>
-            <td width="220px"><i class="fa fa-text-o" aria-hidden="true"></i> index-dev.html</td>
+            <td width="220px"><i class="fa fa-file-text-o" aria-hidden="true"></i> index-dev.html</td>
             <td>Development version of application. Debugging on. Using full versions of resources</td>
         </tr>
         <tr>
@@ -175,23 +191,23 @@ web applications. States are consisted out of controller and view and architectu
 When creating a state first is to declare state view inside <span class="folder">view</span> folder. Views
 are always named by state name according to the url and suffixed with <span class="file">.html</span>
 extension.
-Here is example of bar.html, lines are explained as in-code comments.
+Here is example of foo.html, lines are explained as in-code comments.
 
 ```html
-    <!-- This is example of our foo/view/bar.html -->
+    <!-- This is example of our example/view/foo.html -->
 
-    <!-- Line bellow will include our bar state controller located in foo module (foo/controller/BarController.js) -->
-    <script src="../controller/BarController.js"></script>
+    <!-- Line bellow will include our foo state controller located in example module (example/controller/FooController.js) -->
+    <script src="../controller/FooController.js"></script>
 
     <template>
           <!-- Here should go contents of our state which will be inserted in element defined in viewSelector -->
     </template>
 ```
 
-<p>Let's analyze the contents of <span class="file">BarController.js</span> which will control the behavior of the state.</p>
+<p>Let's analyze the contents of <span class="file">FooController.js</span> which will control the behavior of the state.</p>
 
 ```javascript
-class BarController extends Controller {
+class FooController extends Controller {
 
     constructor(app) {
         super(app);
@@ -245,7 +261,7 @@ class BarController extends Controller {
 
 }
 
-window.classes['BarController'] = BarController;
+window.classes['FooController'] = FooController;
 ```
 
-Now our state is ready and we can finally access it via its appropriate url: <span class="url">https://example.com/application/#foo/bar</span>
+Now our state is ready and we can finally access it via its appropriate url: <span class="url">https://example.com/application/#example/foo</span>
