@@ -1,26 +1,24 @@
 # Frontend Framework
-
 Lightweight and robust ECMA6 frontend framework, architectured on MVC pattern and resting on webcomponents.
 
 ## Installation
-
 Execute ```npm install``` to install required node packages, needed for development and building the application.
 
 ## Build
-
 Execute ```gulp build``` to fully build application.
 
 ## Tutorial
-Visit [http://dev.byteout.com/frontend-framework#example/tutorial](http://dev.byteout.com/frontend-framework#example/tutorial)
+Visit [tutorial](http://dev.byteout.com/frontend-framework#example/tutorial) section for more information.
+
+## Testing
+Execute ```npm test``` to run tests.
 
 ## Use from CDN
-
-```
-https://cdn.rawgit.com/ivanstan/frontend-framework/master/build/frontend-framework-1.0.0.js
-```
+<code class="url" style="width: 100%; padding: 0.5em; display: table;">
+  https://cdn.rawgit.com/ivanstan/frontend-framework/master/build/frontend-framework-1.0.0.js
+</code>
 
 ##MIT License
-
 Copyright © 2016 Ivan Stanojevic
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

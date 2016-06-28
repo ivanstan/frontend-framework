@@ -1,7 +1,7 @@
 ##Routing
 
 Application resources are organized in states which are routed in scheme <span class="url">#module-name/state-name</span>
-Here is an example url which will navigate to state bar inside foo module:
+Here is an example url which will navigate to state <code>bar</code> inside <code>foo</code> module:
 <span class="url">https://example.com/application/#foo/bar</span>
 
 ## Application Lifecycle
@@ -64,13 +64,18 @@ graph LR;
 
 ##Configuration
 
-Application is intended to be configured in bootstrap.json file. Bellow is the overview of configuration object:
+Application is intended to be configured in <span class="file">bootstrap.json</span> file. Bellow is the overview of configuration object:
 
 <table class="table">
     <tbody>
     <tr>
         <td><code>modules</code></td>
-        <td width="160px"><code>{'foo': {}, 'test': {}}</code></td>
+        <td width="160px"><code>
+        {
+            'foo': {}, 
+            'test': {}
+        }
+        </code></td>
         <td>Object of modules that exist in application. This names should match the folder names in module
             folder.
         </td>
@@ -101,7 +106,7 @@ Application is intended to be configured in bootstrap.json file. Bellow is the o
 User's modules reside inside the <span class="folder">module</span> folder and are organized module per folder.
 
 
-After creating module directory. It should be added into modules object of in bootstrap.json file.
+After creating module directory. It should be added into modules object of in <span class="file">bootstrap.json</span> file.
 This way framework will know about existence of new module.
 
 The main JavaScript of module file should reside inside the module directory and be called same as module
@@ -167,17 +172,26 @@ class BarController extends Controller {
     }
 
     /**
-     * Sometimes we need to do something asynchronous in our state such as ajax call. This is the place for it.
-     * Until defer object is either resolved or rejected no further rendering of html will happen.
+     * PreRender hook is used to perform task before state is rendered to application. Code bellow shows
+     * some of the common tasks that can be performed here.
      */
     preRender(defer) {
-
-        if(somethingAsync(function(data) {
-            this.someData = data;
-            defer.resolve();
-        }));
-
-        return defer.promise();
+    
+        // here we are fetching some data via ajax.
+        $.ajax({
+            url: 'example.com/async',
+            success: (data) => {
+                this.data = data; // assigning the data fetched to state controller property.
+                defer.resolve();  // resolve (or reject) defer object so we can continue 
+                                  // rendering process after async code is finished.
+            }
+        });
+        
+        let template = this.template;            // at this point template is already fetched and it could be processed
+        this.template = template.toUpperCase();  // here we will make all letters in template look like someone is shouting. 
+                                                 // Alternative is to override template getter which is shown in method
+                                                 // bellow.
+        return defer.promise(); // every hook returns promise
     }
 
     /**
@@ -191,8 +205,8 @@ class BarController extends Controller {
     /**
      * Called after html has been rendered on page. Attach event handlers here.
      */
-    postRender() {
-        return super.postRender(defer);
+    postRender(defer) {
+        return super.postRender(defer); // parent method will resolve defered object.
     }
 
     /**

@@ -1,10 +1,21 @@
 .url {
+  padding: .2rem .4rem;
+  font-size: 90%;
   color: #0275d8;
-  font-weight: bold;
+  background-color: #f7f7f9;
+  border-radius: .25rem;
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
 }
 
+.file,
 .folder {
-
+  padding: .2rem .4rem;
+  font-size: 90%;
+  background-color: #f7f7f9;
+  border-radius: .25rem;
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+  height: auto;
+  cursor: default;
 }
 
 nav {
