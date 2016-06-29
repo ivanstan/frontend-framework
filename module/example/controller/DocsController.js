@@ -3,8 +3,6 @@ class DocsController extends Controller {
     constructor(app) {
         super(app);
 
-        console.log(app);
-
         this.converter = new showdown.Converter();
     }
 

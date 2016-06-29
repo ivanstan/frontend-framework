@@ -113,28 +113,25 @@ Application is intended to be configured in <span class="file">bootstrap.json</s
     <tbody>
     <tr>
         <td><code>modules</code></td>
-        <td width="220px"><code>
-        {
-            'foo': {}, 
-            'test': {}
-        }
-        </code></td>
-        <td>Object of modules that exist in application. This names should match the folder names in module
+        <td width="220px"></td>
+        <td>
+            Object of modules that exist in application. This names should match the folder names in module
             folder.
         </td>
     </tr>
     <tr>
         <td><code>viewSelector</code></td>
         <td><code>'#container'</code></td>
-        <td>jQuery selector of the html element in which state should be loaded. This element should exist
-            inside assets/index.html file.
+        <td>
+            jQuery selector of the html element in which state should be loaded. This element should exist inside
+            assets/index.html file.
         </td>
     </tr>
     <tr>
         <td><code>libs</code></td>
         <td></td>
-        <td>Object containing libraries. Mappings of the JavaScript and scss files, which are to be used in
-            build process.
+        <td>
+            Object containing libraries. Mappings of the JavaScript and scss files, which are to be used in build process.
         </td>
     </tr>
     </tbody>
@@ -145,20 +142,20 @@ Here is an example:
 
     {
       "modules": {
-        "example": {
-          "settings": {}    // here we can define custom module settings
+        "example": {                                        // example of module deffinition
+          "settings": {}                                    // here we can define custom module settings
         },
         "anotherModule": {}
       },
       "viewSelector": "#container",
-      "libs": [
+      "libs": [                                             // libraries stored localy in vendor folder should be mapped here
         {
-          "name": "framework",  // framework is deffined as application dependency
+          "name": "framework",                              // framework is deffined as application dependency
           "js": ["build/frontend-framework-1.0.0.js"]
         },
         {
           "name": "application",
-          "dependencies": ["framework"],
+          "dependencies": ["framework"],                    // framework will be included before this library
           "scss": ["module/example/styles.scss"],
           "js": ["bootstrap.js"]
         }
@@ -250,14 +247,13 @@ class FooController extends Controller {
      * some of the common tasks that can be performed here.
      */
     preRender(defer) {
-    
-        // here we are fetching some data via ajax.
-        $.ajax({
+
+        $.ajax({                            // here we are fetching some data via ajax.
             url: 'example.com/async',
             success: (data) => {
-                this.data = data; // assigning the data fetched to state controller property.
-                defer.resolve();  // resolve (or reject) defer object so we can continue 
-                                  // rendering process after async code is finished.
+                this.data = data;           // assigning the data fetched to state controller property.
+                defer.resolve();            // resolve (or reject) defer object so we can continue
+                                            // rendering process after async code is finished.
             }
         });
         
