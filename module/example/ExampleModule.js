@@ -1,7 +1,7 @@
 class ExampleModule extends Module {
 
     constructor(app) {
-        super();
+        super(app);
         this.app = app;
         this.routes = {
             '/': {
@@ -10,7 +10,7 @@ class ExampleModule extends Module {
             'example/tutorial': {
                 controller: 'tutorial'
             },
-            'docs': {
+            'example/docs': {
                 controller: 'docs'
             }
         };

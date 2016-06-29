@@ -397,14 +397,10 @@ class Framework {
         var moduleCount = Object.keys(this.config.modules).length;
         var currentCount = 0;
 
-        console.log(this.config.modules);
-
         for (var moduleName in this.config.modules) {
-            //if (!this.config.modules.hasOwnProperty(moduleName)) continue;
+            if (!this.config.modules.hasOwnProperty(moduleName)) continue;
 
             var moduleClassName = `${Util.capitalize(moduleName)}Module`;
-
-            console.log(moduleClassName);
 
             $.ajax({
                 url: `module/${moduleName}/${moduleClassName}.js`,
@@ -413,24 +409,24 @@ class Framework {
                         defer.reject(`Error loading: ${moduleClassName}`);
                     }
 
+                    console.log(moduleClassName, window.classes[moduleClassName], window.classes);
+
                     var moduleClass = window.classes[moduleClassName];
 
-
-                    console.log(moduleClass, moduleClassName);
-
-
-                    //if (typeof moduleClass === 'undefined') {
-                    //    defer.reject(`Invalid module class: ${moduleClass}`);
-                    //    return false;
-                    //}
+                    if (typeof moduleClass === 'undefined') {
+                        defer.reject(`Invalid module class: ${moduleClass}`);
+                        return false;
+                    }
 
                     var module = new moduleClass(this);
                     this.config['modules'][moduleName] = module.settings;
 
-                    for(var i in module.routes) {
-                        module.routes[i]['module'] = moduleName;
+                    if(typeof module.routes == 'object') {
+                        for(var i in module.routes) {
+                            module.routes[i]['module'] = moduleName;
+                        }
+                        this.routes = $.extend(this.routes, module.routes);
                     }
-                    this.routes = $.extend(this.routes, module.routes);
 
                     modules[moduleName] = module;
                     _modules.set(this, modules);
