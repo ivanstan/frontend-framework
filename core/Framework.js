@@ -169,21 +169,20 @@ class Framework {
     }
 
     loadController(route) {
-        var defer = $.Deferred(),
-            viewFile = `module/${route.module}/view/${route.controller}.html`;
+        var defer = $.Deferred();
 
-        this.loadView(viewFile)
+        this.loadView(route.viewFile)
             .done((link) => {
                 var template = Util.link2html(link);
 
                 if (template == false) {
-                    return defer.reject(`File ${viewFile} is not template`).promise();
+                    return defer.reject(`File ${route.viewFile} is not template`).promise();
                 }
 
                 defer.resolve(template);
             })
             .fail(() => {
-                defer.reject(`Error loading ${viewFile}`);
+                defer.reject(`Error loading ${route.viewFile}`);
             });
 
         return defer.promise();

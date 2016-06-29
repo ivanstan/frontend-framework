@@ -1,8 +1,8 @@
-##Routing
+##Philosophy
 
-Application resources are organized in states which are routed in scheme <span class="url">#module-name/state-name</span>
-Here is an example url which will navigate to state <code>foo</code> inside <code>example</code> module:
-<span class="url">https://example.com/application/#example/foo</span>
+Application resources "pages" are called states and are composed of view and controller. States are further grouped into
+modules.
+Each module defines its own routing of states and can also override routing provided by other modules.
 
 ## Application Lifecycle
 
@@ -74,7 +74,7 @@ graph LR;
             <td>Module views</td>
         </tr>
         <tr>
-            <td width="220px"><i class="fa fa-file-text-o" aria-hidden="true" style="padding-left: 60px;"></i> foo.html</td>
+            <td width="220px"><i class="fa fa-file-text-o" aria-hidden="true" style="padding-left: 60px;"></i> fooView.html</td>
             <td>State view</td>
         </tr>
         <tr>
@@ -131,11 +131,6 @@ Application is intended to be configured in <span class="file">bootstrap.json</s
         </td>
     </tr>
     <tr>
-        <td><code>default</code></td>
-        <td></td>
-        <td>Object defining default module and state (to use when these are not provided in url).</td>
-    </tr>
-    <tr>
         <td><code>libs</code></td>
         <td></td>
         <td>Object containing libraries. Mappings of the JavaScript and scss files, which are to be used in
@@ -145,9 +140,35 @@ Application is intended to be configured in <span class="file">bootstrap.json</s
     </tbody>
 </table>
 
+Here is an example:
+```javascript
+
+    {
+      "modules": {
+        "example": {
+          "settings": {}    // here we can define custom module settings
+        },
+        "anotherModule": {}
+      },
+      "viewSelector": "#container",
+      "libs": [
+        {
+          "name": "framework",  // framework is deffined as application dependency
+          "js": ["build/frontend-framework-1.0.0.js"]
+        },
+        {
+          "name": "application",
+          "dependencies": ["framework"],
+          "scss": ["module/example/styles.scss"],
+          "js": ["bootstrap.js"]
+        }
+      ]
+    }
+
+```
+
 ##Creating module
 User's modules reside inside the <span class="folder">module</span> folder and are organized module per folder.
-
 
 After creating module directory. It should be added into modules object of in <span class="file">bootstrap.json</span> file.
 This way framework will know about existence of new module.
@@ -155,12 +176,17 @@ This way framework will know about existence of new module.
 The main JavaScript of module file should reside inside the module directory and be called same as module
 with <span class="text-muted">.js</span> extension.
 
-
 ```javascript
+
     class ExampleModule extends Module {
 
         constructor() {
-            this.settings = {};
+            this.settings = {};     // define custom module settings here
+            this.routes = {         // define routes, in this example for url www.example.com/index.html#example/foo
+                "example/foo": {    // application will execute state called foo inside example module. For such state
+                    state: 'foo'    // view fooView.html will be displayed and its controller FooController.js will be
+                }                   // executed.
+            };
         }
 
         preRender(defer) {
@@ -189,12 +215,12 @@ into single object available trough application, particularly in controllers via
 Application states are created inside the module. Each state is conceptually similar to page in conventional
 web applications. States are consisted out of controller and view and architecture is based on MVC pattern.
 When creating a state first is to declare state view inside <span class="folder">view</span> folder. Views
-are always named by state name according to the url and suffixed with <span class="file">.html</span>
-extension.
-Here is example of foo.html, lines are explained as in-code comments.
+are always named by state name according to the url and suffixed named like the following <span class="file">fooView.html</span>.
+Here is example of such file:
 
 ```html
-    <!-- This is example of our example/view/foo.html -->
+
+    <!-- This is example of our example/view/fooView.html -->
 
     <!-- Line bellow will include our foo state controller located in example module (example/controller/FooController.js) -->
     <script src="../controller/FooController.js"></script>
@@ -202,11 +228,16 @@ Here is example of foo.html, lines are explained as in-code comments.
     <template>
           <!-- Here should go contents of our state which will be inserted in element defined in viewSelector -->
     </template>
+
 ```
 
-<p>Let's analyze the contents of <span class="file">FooController.js</span> which will control the behavior of the state.</p>
+<p>
+After state view is defined our next job is to determine its behavior, for that we use state contollers. Let's analyze
+the contents of one such file: <span class="file">example/controller/FooController.js</span>.
+</p>
 
 ```javascript
+
 class FooController extends Controller {
 
     constructor(app) {
@@ -256,12 +287,14 @@ class FooController extends Controller {
      * Called before navigating to next state. Clear mess your state has made here.
      */
     destructor(defer) {
-        return super.destructor(defer);
+        return super.destructor(defer); // parent method will resolve defered object.
     }
 
 }
 
 window.classes['FooController'] = FooController;
+
 ```
 
-Now our state is ready and we can finally access it via its appropriate url: <span class="url">https://example.com/application/#example/foo</span>
+Now our state is ready and we can finally access it via its appropriate url:
+<span class="url">https://example.com/application/#example/foo</span>

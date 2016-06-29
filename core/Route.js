@@ -38,8 +38,17 @@ class Route {
         let matched = this.map[this.uri] ? this.map[this.uri] : this.map['/'];
 
         this.module = matched.module;
-        this.controller = matched.controller;
-        this.controllerClassName = Util.capitalize(matched.controller) + 'Controller';
+        this.state = matched.state;
+        this.moduleFolder = `module/${this.module}`;
+
+        this.moduleClassName = Util.capitalize(matched.module) + 'Module';
+        this.controllerClassName = Util.capitalize(matched.state) + 'Controller';
+
+        this.viewFileName = matched.state + 'View.html';
+        this.controllerFileName = matched.state + 'Controller.js';
+
+        this.viewFile = `${this.moduleFolder}/view/${this.viewFileName}`;
+        this.controllerFile = `${this.moduleFolder}/controller/${this.controllerFileName}`;
 
         return this;
     }

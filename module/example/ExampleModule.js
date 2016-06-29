@@ -5,13 +5,13 @@ class ExampleModule extends Module {
         this.app = app;
         this.routes = {
             '/': {
-                controller: 'home'
+                state: 'home'
             },
             'example/tutorial': {
-                controller: 'tutorial'
+                state: 'tutorial'
             },
             'example/docs': {
-                controller: 'docs'
+                state: 'docs'
             }
         };
 
