@@ -1,6 +1,5 @@
-
 module.exports = function (config) {
-    var nodeFramework = require('../vendor/frontend-framework/core/NodeFramework.js');
+    var nodeFramework = require('../core/NodeFramework.js');
     var fs = require('fs');
     var appConfig = JSON.parse(fs.readFileSync('bootstrap.json', 'utf8'));
 
@@ -62,7 +61,6 @@ module.exports = function (config) {
     };
 
     nodeFramework.setConfig(appConfig);
-
     var libs = nodeFramework.resolveDependencies('dependencies');
     for (var i in libs) {
         if (libs[i].hasOwnProperty('js')) {

@@ -15,7 +15,12 @@ class Framework {
     constructor(config) {
         window.classes = window.classes || {};
         this.config = config;
-        this.routeMap = {};
+        this.routes = {
+            '/': {
+                controller: 'default',
+                module: 'default'
+            }
+        };
         this.route = {};
 
         _current.set(this, {});
@@ -30,14 +35,7 @@ class Framework {
             });
 
         $(window).on('hashchange', () => {
-
-
-
-
-
-
-
-            this.navigate(new Route(window.location.hash));
+            this.navigate(new Route(window.location.hash, {}, this.routes));
         });
     };
 
@@ -53,10 +51,14 @@ class Framework {
         var moduleCount = Object.keys(this.config.modules).length;
         var currentCount = 0;
 
+        console.log(this.config.modules);
+
         for (var moduleName in this.config.modules) {
-            if (!this.config.modules.hasOwnProperty(moduleName)) continue;
+            //if (!this.config.modules.hasOwnProperty(moduleName)) continue;
 
             var moduleClassName = `${Util.capitalize(moduleName)}Module`;
+
+            console.log(moduleClassName);
 
             $.ajax({
                 url: `module/${moduleName}/${moduleClassName}.js`,
@@ -67,10 +69,14 @@ class Framework {
 
                     var moduleClass = window.classes[moduleClassName];
 
-                    if (typeof moduleClass === 'undefined') {
-                        defer.reject(`Invalid module class: ${moduleClass}`);
-                        return false;
-                    }
+
+                    console.log(moduleClass, moduleClassName);
+
+
+                    //if (typeof moduleClass === 'undefined') {
+                    //    defer.reject(`Invalid module class: ${moduleClass}`);
+                    //    return false;
+                    //}
 
                     var module = new moduleClass(this);
                     this.config['modules'][moduleName] = module.settings;
@@ -78,7 +84,7 @@ class Framework {
                     for(var i in module.routes) {
                         module.routes[i]['module'] = moduleName;
                     }
-                    this.routeMap = $.extend(this.routeMap, module.routes);
+                    this.routes = $.extend(this.routes, module.routes);
 
                     modules[moduleName] = module;
                     _modules.set(this, modules);
@@ -150,7 +156,7 @@ class Framework {
                                     let view = $(this.config.viewSelector);
 
                                     view.html(controller.template);
-                                    view.attr('class', route.pathname.replace('/', '-') + '-page');
+                                    view.attr('class', route.cssNamespace);
 
                                     var postRenderDefer = new $.Deferred();
                                     controller.postRender(postRenderDefer)

@@ -5,10 +5,6 @@
     }
   },
   "viewSelector": "#container",
-  "default": {
-    "module": "example",
-    "controller": "home"
-  },
   "libs": [
     {
       "name": "framework",

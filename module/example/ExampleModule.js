@@ -5,10 +5,13 @@ class ExampleModule extends Module {
         this.app = app;
         this.routes = {
             '/': {
-                controller: 'DocsController'
+                controller: 'home'
+            },
+            'example/tutorial': {
+                controller: 'tutorial'
             },
             'docs': {
-                controller: 'DocsController'
+                controller: 'docs'
             }
         };
 
@@ -27,7 +30,7 @@ class ExampleModule extends Module {
         return super.preRender(defer);
     }
 
-    postRender() {
+    postRender(defer) {
 
         if (this.app.isDebug()) {
             console.log(this.constructor.name + ' postRender hook called');

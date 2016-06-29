@@ -252,35 +252,45 @@ class Route {
     /**
      * Constructor. Parses the route string to object.
      *
-     * @param {String} path Path string to parse.
-     * @param {Object} params Object of parameters to pass to target state.
-     * @returns {Object} Route object
+     * @param uri
+     * @param params
+     * @param map
+     * @returns {Route}
      */
-    constructor(path, params) {
-        let route = {};
-        let uri = path.substring(1).split('?');
-        route.pathname = uri[0].split('/');
+    constructor(uri, params, map) {
+        this.map = map;
+        this.params = params ? params : {};
+        this.uri = uri.indexOf('#') === 0 ? uri.substring(1) : uri;
+        this.cssNamespace = this.uri.replace('/', '-') + '-page';
 
-        route.module = route.pathname[0] ? route.pathname[0] : App.config.default.module;
-        route.controller = route.pathname[1] ? route.pathname[1] : App.config.default.controller;
-        route.controllerClassName = route.pathname[1] ? Util.capitalize(route.pathname[1]) + 'Controller' : Util.capitalize(App.config.default.controller) + 'Controller';
-        route.pathname = uri[0];
-        route.params = {};
-
-        // ToDo: handle hash suffix here
-
-        let paramsA = uri[1] ? uri[1].split('&') : [];
-        for (let i in paramsA) {
-            let nv = params[i].split('=');
-            if (!nv[0]) continue;
-            route.params[nv[0]] = nv[1] || true;
+        if(uri.lastIndexOf('#') > 0) {
+            this.hash = this.uri.substring(this.uri.lastIndexOf('#') + 1, this.uri.length);
+            this.uri = this.uri.substring(0, this.uri.lastIndexOf('#'));
         }
 
-        if (route.pathname.length == 0) {
-            route.pathname = route.module + '/' + route.controller;
+        if(this.uri.indexOf('?') > -1) {
+            let tmpParams = this.uri.substr(uri.indexOf('?'), this.uri.length);
+            this.uri = this.uri.substr(0, this.uri.indexOf('?'));
+
+            tmpParams = tmpParams.split('&');
+            for (let i in tmpParams) {
+                let nv = tmpParams[i].split('=');
+                if (!nv[0]) continue;
+                this.params[nv[0]] = nv[1] || true;
+            }
         }
 
-        return route;
+        if(Object.keys(this.map).length === 0) {
+            console.log('Routing map empty');
+        }
+
+        let matched = this.map[this.uri] ? this.map[this.uri] : this.map['/'];
+
+        this.module = matched.module;
+        this.controller = matched.controller;
+        this.controllerClassName = Util.capitalize(matched.controller) + 'Controller';
+
+        return this;
     }
 }
 /**
@@ -351,7 +361,12 @@ class Framework {
     constructor(config) {
         window.classes = window.classes || {};
         this.config = config;
-        this.routeMap = {};
+        this.routes = {
+            '/': {
+                controller: 'default',
+                module: 'default'
+            }
+        };
         this.route = {};
 
         _current.set(this, {});
@@ -366,14 +381,7 @@ class Framework {
             });
 
         $(window).on('hashchange', () => {
-
-
-
-
-
-
-
-            this.navigate(new Route(window.location.hash));
+            this.navigate(new Route(window.location.hash, {}, this.routes));
         });
     };
 
@@ -389,10 +397,14 @@ class Framework {
         var moduleCount = Object.keys(this.config.modules).length;
         var currentCount = 0;
 
+        console.log(this.config.modules);
+
         for (var moduleName in this.config.modules) {
-            if (!this.config.modules.hasOwnProperty(moduleName)) continue;
+            //if (!this.config.modules.hasOwnProperty(moduleName)) continue;
 
             var moduleClassName = `${Util.capitalize(moduleName)}Module`;
+
+            console.log(moduleClassName);
 
             $.ajax({
                 url: `module/${moduleName}/${moduleClassName}.js`,
@@ -403,10 +415,14 @@ class Framework {
 
                     var moduleClass = window.classes[moduleClassName];
 
-                    if (typeof moduleClass === 'undefined') {
-                        defer.reject(`Invalid module class: ${moduleClass}`);
-                        return false;
-                    }
+
+                    console.log(moduleClass, moduleClassName);
+
+
+                    //if (typeof moduleClass === 'undefined') {
+                    //    defer.reject(`Invalid module class: ${moduleClass}`);
+                    //    return false;
+                    //}
 
                     var module = new moduleClass(this);
                     this.config['modules'][moduleName] = module.settings;
@@ -414,7 +430,7 @@ class Framework {
                     for(var i in module.routes) {
                         module.routes[i]['module'] = moduleName;
                     }
-                    this.routeMap = $.extend(this.routeMap, module.routes);
+                    this.routes = $.extend(this.routes, module.routes);
 
                     modules[moduleName] = module;
                     _modules.set(this, modules);
@@ -486,7 +502,7 @@ class Framework {
                                     let view = $(this.config.viewSelector);
 
                                     view.html(controller.template);
-                                    view.attr('class', route.pathname.replace('/', '-') + '-page');
+                                    view.attr('class', route.cssNamespace);
 
                                     var postRenderDefer = new $.Deferred();
                                     controller.postRender(postRenderDefer)
