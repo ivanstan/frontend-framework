@@ -11,6 +11,7 @@ var fs = require('fs'),
     replace = require('gulp-replace-task'),
     packageJson = require('./package.json'),
     NodeFramework = require('./core/NodeFramework.js'),
+    zip = require('gulp-zip'),
     sourceJs = [],
     sourceScss = [];
 
@@ -100,7 +101,13 @@ gulp.task('production', function () {
 });
 
 gulp.task('build', function () {
-    gulp.start(['styles', 'js', 'framework', 'development', 'production', 'docs']);
+    gulp.start(['styles', 'js', 'framework', 'development', 'production', 'docs', 'zip']);
+});
+
+gulp.task('zip', () => {
+    return gulp.src('starter-pack/*')
+        .pipe(zip('starter-pack.zip'))
+        .pipe(gulp.dest('./'));
 });
 
 gulp.task('docs', function () {
