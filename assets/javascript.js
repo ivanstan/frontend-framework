@@ -287,8 +287,17 @@ class Route {
         let matched = this.map[this.uri] ? this.map[this.uri] : this.map['/'];
 
         this.module = matched.module;
-        this.controller = matched.controller;
-        this.controllerClassName = Util.capitalize(matched.controller) + 'Controller';
+        this.state = matched.state;
+        this.moduleFolder = `module/${this.module}`;
+
+        this.moduleClassName = Util.capitalize(matched.module) + 'Module';
+        this.controllerClassName = Util.capitalize(matched.state) + 'Controller';
+
+        this.viewFileName = matched.state + 'View.html';
+        this.controllerFileName = matched.state + 'Controller.js';
+
+        this.viewFile = `${this.moduleFolder}/view/${this.viewFileName}`;
+        this.controllerFile = `${this.moduleFolder}/controller/${this.controllerFileName}`;
 
         return this;
     }
@@ -409,10 +418,7 @@ class Framework {
                         defer.reject(`Error loading: ${moduleClassName}`);
                     }
 
-                    console.log(moduleClassName, window.classes[moduleClassName], window.classes);
-
                     var moduleClass = window.classes[moduleClassName];
-
                     if (typeof moduleClass === 'undefined') {
                         defer.reject(`Invalid module class: ${moduleClass}`);
                         return false;
@@ -518,21 +524,20 @@ class Framework {
     }
 
     loadController(route) {
-        var defer = $.Deferred(),
-            viewFile = `module/${route.module}/view/${route.controller}.html`;
+        var defer = $.Deferred();
 
-        this.loadView(viewFile)
+        this.loadView(route.viewFile)
             .done((link) => {
                 var template = Util.link2html(link);
 
                 if (template == false) {
-                    return defer.reject(`File ${viewFile} is not template`).promise();
+                    return defer.reject(`File ${route.viewFile} is not template`).promise();
                 }
 
                 defer.resolve(template);
             })
             .fail(() => {
-                defer.reject(`Error loading ${viewFile}`);
+                defer.reject(`Error loading ${route.viewFile}`);
             });
 
         return defer.promise();
