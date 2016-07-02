@@ -9,31 +9,31 @@
 * * *
 
 ## Class: Module
-
+Class Constructor.
 
 
 ## Class: Module
-
+Class Constructor.
 
 ### Module.preRender(defer) 
 
-Executed before state rendering process starts.
+preRender.Executed before state rendering process starts.
 
 **Parameters**
 
-**defer**: , Executed before state rendering process starts.
+**defer**: `Deferred`, preRender.Executed before state rendering process starts.
 
-**Returns**: , Promise
+**Returns**: `Promise`
 
 ### Module.postRender(defer) 
 
-Executed once state rendering is complete.
+postRender.Executed once state rendering is complete.
 
 **Parameters**
 
-**defer**: , Executed once state rendering is complete.
+**defer**: `Deferred`, postRender.Executed once state rendering is complete.
 
-**Returns**: `*`
+**Returns**: `Promise`
 
 
 

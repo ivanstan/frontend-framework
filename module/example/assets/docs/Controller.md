@@ -9,37 +9,41 @@
 * * *
 
 ## Class: Controller
-
+Class constructor.
 
 
 ## Class: Controller
+Class constructor.
 
+**template**:  , Template property getter.
+**template**:  , Template property setter.
+### Controller.preRender(defer) 
 
-**template**:  , Template getter.
-**template**:  
-### Controller.preRender() 
+preRenderExecuted before state rendering process starts.
 
-Override this method in your controller to process asynchronous requests.Further controller processing shall not be executed until defer object is eitherresolver or rejected.
+**Parameters**
+
+**defer**: `Deferred`, preRenderExecuted before state rendering process starts.
 
 **Returns**: `Promise`, promise
 
 ### Controller.postRender(defer) 
 
-Template is loaded. Use this method to attach event handlers.
+postRenderExecuted once state rendering is complete.
 
 **Parameters**
 
-**defer**: , Template is loaded. Use this method to attach event handlers.
+**defer**: `Deferred`, postRenderExecuted once state rendering is complete.
 
 **Returns**: `Promise`
 
 ### Controller.destructor(defer) 
 
-Called when controller another controller is called. Event handlers will be detached automatically,use this method to cleanup additional elements added on page.
+Destructor.Executed when state change is requested.
 
 **Parameters**
 
-**defer**: , Called when controller another controller is called. Event handlers will be detached automatically,use this method to cleanup additional elements added on page.
+**defer**: `Deferred`, Destructor.Executed when state change is requested.
 
 **Returns**: `Promise`
 

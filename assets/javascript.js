@@ -1,9 +1,21 @@
 class Util {
 
+    /**
+     * Uppercase first letter of string.
+     *
+     * @param string
+     * @returns {string}
+     */
     static capitalize(string) {
         return string[0].toUpperCase() + string.slice(1);
     }
 
+    /**
+     * Returns html template from html import tag.
+     *
+     * @param link
+     * @returns {*}
+     */
     static link2html(link) {
         var template = $(link[0].import).find('template');
 
@@ -12,29 +24,6 @@ class Util {
         }
 
         return template.html();
-    }
-
-    static require(dependencies) {
-        var defer = [];
-        var _self = this;
-
-        $(dependencies).each((index, url) => {
-            defer.push($.getScript(url));
-        });
-
-        Util.loading();
-
-        return $.when.apply($, defer)
-            .fail((jqXHR, textStatus, errorThrown) => {
-                var instanceProto = Object.getPrototypeOf(_self);
-                console.log(instanceProto.constructor.name + ': failed loading dependencies');
-                console.log(errorThrown);
-
-                Util.notification('error', instanceProto.constructor.name, 'Failed loading dependencies');
-            })
-            .always(() => {
-                Util.loading(false);
-            });
     }
 
 }
@@ -150,7 +139,7 @@ class AjaxException extends Exception {
 
 }
 /**
- *
+ * Module class. All modules shall extend this Module class.
  */
 class Module {
 
@@ -166,7 +155,7 @@ class Module {
      * Executed before state rendering process starts.
      *
      * @param defer
-     * @returns Promise
+     * @returns {Promise}
      */
     preRender(defer) {
         return defer.resolve().promise();
@@ -176,7 +165,7 @@ class Module {
      * Executed once state rendering is complete.
      *
      * @param defer
-     * @returns {*}
+     * @returns {Promise}
      */
     postRender(defer) {
         return defer.resolve().promise();
@@ -184,12 +173,14 @@ class Module {
 
 }
 /**
+ * Controller class. All controllers shall extend this Controller class.
  *
+ * @member [String] template    Html view associated with state.
  */
 class Controller {
 
     /**
-     *
+     * @member [String] template    Html view associated with state.
      * @param app
      */
     constructor(app) {
