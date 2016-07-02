@@ -3,7 +3,7 @@ Lightweight and robust ECMA6 frontend framework, architectured on MVC pattern an
 
 ##Getting Started
 
-[Download](http://dev.byteout.com/frontend-framework/starter-pack.zip) frontend framework starter pack from here to start
+[Download](https://github.com/ivanstan/framework-starterpack/archive/master.zip) frontend framework starter pack from here to start
 building great apps.
 
 ##Installation
