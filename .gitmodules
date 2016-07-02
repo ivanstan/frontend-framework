@@ -1,0 +1,3 @@
+[submodule "framework-starterpack"]
+	path = framework-starterpack
+	url = https://github.com/ivanstan/framework-starterpack
