@@ -17,9 +17,6 @@ class Util {
      * @returns {*}
      */
     static link2html(link) {
-
-        console.log(link[0].import);
-
         var template = $(link[0].import).find('template');
 
         if (template.length == 0) {

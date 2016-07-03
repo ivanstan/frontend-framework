@@ -102,6 +102,9 @@ class Framework {
      * @param {Route} route
      */
     navigate(route) {
+
+        console.log(route);
+
         this.route = route;
         var current = _current.get(this);
 
@@ -166,12 +169,7 @@ class Framework {
 
         this.loadView(route.viewFile)
             .done((link) => {
-
-                console.log(link);
-
                 var template = Util.link2html(link);
-
-                console.log(template);
 
                 if (template == false) {
                     return defer.reject(`File ${route.viewFile} is not template`).promise();
@@ -286,6 +284,22 @@ class Framework {
      */
     isDebug() {
         return location.pathname.indexOf('index-dev.html') > 0;
+    }
+
+    getPartial(url) {
+        var defer = $.Deferred();
+
+        $.ajax({
+            url: url,
+            success: function (data) {
+                defer.resolve(data);
+            },
+            error: function () {
+                defer.reject();
+            }
+        });
+
+        return defer.promise();
     }
 
 }

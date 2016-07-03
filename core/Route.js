@@ -12,7 +12,6 @@ class Route {
         this.map = map;
         this.params = params ? params : {};
         this.uri = uri.indexOf('#') === 0 ? uri.substring(1) : uri;
-        this.cssNamespace = this.uri.replace('/', '-') + '-page';
 
         if(uri.lastIndexOf('#') > 0) {
             this.hash = this.uri.substring(this.uri.lastIndexOf('#') + 1, this.uri.length);
@@ -40,6 +39,7 @@ class Route {
         this.module = matched.module;
         this.state = matched.state;
         this.moduleFolder = `module/${this.module}`;
+        this.cssNamespace = `${matched.module}-${matched.state}-page`;
 
         this.moduleClassName = Util.capitalize(matched.module) + 'Module';
         this.controllerClassName = Util.capitalize(matched.state) + 'Controller';

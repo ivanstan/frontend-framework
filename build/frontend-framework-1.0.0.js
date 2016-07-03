@@ -259,7 +259,6 @@ class Route {
         this.map = map;
         this.params = params ? params : {};
         this.uri = uri.indexOf('#') === 0 ? uri.substring(1) : uri;
-        this.cssNamespace = this.uri.replace('/', '-') + '-page';
 
         if(uri.lastIndexOf('#') > 0) {
             this.hash = this.uri.substring(this.uri.lastIndexOf('#') + 1, this.uri.length);
@@ -287,6 +286,7 @@ class Route {
         this.module = matched.module;
         this.state = matched.state;
         this.moduleFolder = `module/${this.module}`;
+        this.cssNamespace = `${matched.module}-${matched.state}-page`;
 
         this.moduleClassName = Util.capitalize(matched.module) + 'Module';
         this.controllerClassName = Util.capitalize(matched.state) + 'Controller';
@@ -455,6 +455,9 @@ class Framework {
      * @param {Route} route
      */
     navigate(route) {
+
+        console.log(route);
+
         this.route = route;
         var current = _current.get(this);
 
@@ -519,12 +522,7 @@ class Framework {
 
         this.loadView(route.viewFile)
             .done((link) => {
-
-                console.log(link);
-
                 var template = Util.link2html(link);
-
-                console.log(template);
 
                 if (template == false) {
                     return defer.reject(`File ${route.viewFile} is not template`).promise();
@@ -639,6 +637,22 @@ class Framework {
      */
     isDebug() {
         return location.pathname.indexOf('index-dev.html') > 0;
+    }
+
+    getPartial(url) {
+        var defer = $.Deferred();
+
+        $.ajax({
+            url: url,
+            success: function (data) {
+                defer.resolve(data);
+            },
+            error: function () {
+                defer.reject();
+            }
+        });
+
+        return defer.promise();
     }
 
 }
