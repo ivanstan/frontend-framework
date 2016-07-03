@@ -102,9 +102,6 @@ class Framework {
      * @param {Route} route
      */
     navigate(route) {
-
-        console.log(route);
-
         this.route = route;
         var current = _current.get(this);
 
