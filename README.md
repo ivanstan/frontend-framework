@@ -15,8 +15,13 @@ Execute ```gulp build``` to fully build application.
 ##Tutorial
 Visit [tutorial](http://dev.byteout.com/frontend-framework#example/tutorial) section for more information.
 
-## esting
+## Testing
 Execute ```npm test``` to run tests.
+
+## Compatibility
+Framework relays on modern web technologies that are currently only supported in Google Chrome.
+Framework will support more browsers in future as the browser vendors release their implementations
+that Framework relays on.
 
 ##Use from CDN
 <code class="url" style="width: 100%; padding: 0.5em; display: table;">

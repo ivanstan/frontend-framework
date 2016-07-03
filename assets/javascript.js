@@ -139,22 +139,26 @@ class AjaxException extends Exception {
 
 }
 /**
- * Module class. All modules shall extend this Module class.
+ * @class Controller
+ *
+ * All modules shall extend this Module class.
  */
 class Module {
 
     /**
+     * Class Constructor.
      *
-     * @param {Framework} app Framework object
+     * @param {Framework} app   Framework instance.
      */
     constructor(app) {
 
     }
 
     /**
+     * preRender.
      * Executed before state rendering process starts.
      *
-     * @param defer
+     * @param defer {Deferred}
      * @returns {Promise}
      */
     preRender(defer) {
@@ -162,9 +166,10 @@ class Module {
     }
 
     /**
+     * postRender.
      * Executed once state rendering is complete.
      *
-     * @param defer
+     * @param defer {Deferred}
      * @returns {Promise}
      */
     postRender(defer) {
@@ -173,42 +178,44 @@ class Module {
 
 }
 /**
- * Controller class. All controllers shall extend this Controller class.
+ * @class Controller
  *
- * @member [String] template    Html view associated with state.
+ * All controllers shall extend this Controller class.
  */
 class Controller {
 
     /**
-     * @member [String] template    Html view associated with state.
-     * @param app
+     * Class constructor.
+     *
+     * @param {Framework} app   Framework instance.
      */
     constructor(app) {
         this._template = '';
     }
 
     /**
-     * Template getter.
+     * Template property getter.
      *
-     * @returns {String}
+     * @returns {String}    Html view associated with state.
      */
     get template() {
         return this._template;
     }
 
     /**
+     * Template property setter.
      *
-     * @param {String} template
+     * @param {String} template     Html view associated with state.
      */
     set template(template) {
         this._template = template;
     }
 
     /**
-     * Override this method in your controller to process asynchronous requests.
-     * Further controller processing shall not be executed until defer object is either
-     * resolver or rejected.
+     * preRender
+     * Executed before state rendering process starts.
      *
+     * @param defer {Deferred}
      * @returns {Promise} promise
      */
     preRender(defer) {
@@ -216,9 +223,10 @@ class Controller {
     }
 
     /**
-     * Template is loaded. Use this method to attach event handlers.
+     * postRender
+     * Executed once state rendering is complete.
      *
-     * @param defer
+     * @param defer {Deferred}
      * @returns {Promise}
      */
     postRender(defer) {
@@ -226,11 +234,10 @@ class Controller {
     }
 
     /**
+     * Destructor.
+     * Executed when state change is requested.
      *
-     * Called when controller another controller is called. Event handlers will be detached automatically,
-     * use this method to cleanup additional elements added on page.
-     *
-     * @param defer
+     * @param defer {Deferred}
      * @returns {Promise}
      */
     destructor(defer) {
@@ -466,15 +473,8 @@ class Framework {
             this.hook('preRender')
                 .always(() => {
                     this.loadController(route)
-                        .fail((jqXHR, textStatus, errorThrown) => {
-
-                            let exception = AjaxException.create(errorThrown)
-                                .setJqXHR(jqXHR)
-                                .setTextStatus(textStatus)
-                                .setErrorThrown(errorThrown)
-                                .setRoute(route);
-
-                            this.errorHandler(exception);
+                        .fail((errorText) => {
+                            this.notification('error', errorText);
                             return null;
                         })
                         .done((template) => {
@@ -519,7 +519,12 @@ class Framework {
 
         this.loadView(route.viewFile)
             .done((link) => {
+
+                console.log(link);
+
                 var template = Util.link2html(link);
+
+                console.log(template);
 
                 if (template == false) {
                     return defer.reject(`File ${route.viewFile} is not template`).promise();
@@ -620,7 +625,11 @@ class Framework {
             }
 
             window['toastr'][type](title, message);
+            return void(0);
         }
+
+        console.log(message);
+        return void(0);
     }
 
     /**

@@ -120,15 +120,8 @@ class Framework {
             this.hook('preRender')
                 .always(() => {
                     this.loadController(route)
-                        .fail((jqXHR, textStatus, errorThrown) => {
-
-                            let exception = AjaxException.create(errorThrown)
-                                .setJqXHR(jqXHR)
-                                .setTextStatus(textStatus)
-                                .setErrorThrown(errorThrown)
-                                .setRoute(route);
-
-                            this.errorHandler(exception);
+                        .fail((errorText) => {
+                            this.notification('error', errorText);
                             return null;
                         })
                         .done((template) => {
@@ -173,7 +166,12 @@ class Framework {
 
         this.loadView(route.viewFile)
             .done((link) => {
+
+                console.log(link);
+
                 var template = Util.link2html(link);
+
+                console.log(template);
 
                 if (template == false) {
                     return defer.reject(`File ${route.viewFile} is not template`).promise();
@@ -274,7 +272,11 @@ class Framework {
             }
 
             window['toastr'][type](title, message);
+            return void(0);
         }
+
+        console.log(message);
+        return void(0);
     }
 
     /**
