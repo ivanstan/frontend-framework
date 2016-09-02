@@ -30,7 +30,9 @@ for (var libraryIndex in libraries) {
         for (fileIndex in library.stylesheet) {
             file = library.stylesheet[fileIndex];
 
-            if (file.indexOf('//') < -1) {
+            gutil.log(file, file.indexOf('//'));
+
+            if (file.indexOf('//') == -1) {
                 localScss.push(file);
             } else {
                 remoteScss.push(file);
@@ -42,7 +44,7 @@ for (var libraryIndex in libraries) {
         for (fileIndex in library.javascript) {
             file = library.javascript[fileIndex];
 
-            if (file.indexOf('//') < -1) {
+            if (file.indexOf('//') == -1) {
                 localJs.push(file);
             } else {
                 remoteJs.push(file);
@@ -50,8 +52,6 @@ for (var libraryIndex in libraries) {
         }
     }
 }
-
-gutil.log(localJs, remoteJs);
 
 gulp.task('stylesheet', function () {
     gulp.src(localScss)
@@ -70,7 +70,7 @@ gulp.task('javascript', function () {
 gulp.task('framework', function () {
     var lib = NodeFramework.getLibrary(libraries, 'framework');
 
-    gulp.src(lib.js)
+    gulp.src(lib.javascript)
         .pipe(concat('frontend-framework-' + packageJson.version + '.js'))
         .pipe(gulp.dest('./build'));
 });
@@ -125,46 +125,46 @@ gulp.task('development', function () {
         .pipe(gulp.dest('./'));
 });
 
-//gulp.task('production', function () {
-//
-//    gulp.src('assets/index.html')
-//        .pipe(replace({
-//            patterns: [
-//                {
-//                    match: /{config}/g,
-//                    replacement: function () {
-//                        var DI = config;
-//                        delete DI.libs;
-//
-//                        return JSON.stringify(DI);
-//                    }
-//                },
-//                {
-//                    match: /{javascript}/g,
-//                    replacement: function () {
-//                        var result = '';
-//                        var js = [
-//                            'build/javascript.js'
-//                        ];
-//
-//                        for(var i in js) {
-//                            result += '<script src="' + js[i] + '"></script>\n';
-//                        }
-//
-//                        return result;
-//                    }
-//                },
-//                {
-//                    match: /{stylesheet}/g,
-//                    replacement: function () {
-//                        return '<link rel="stylesheet" type="text/css" href="build/stylesheet.css">\n';
-//                    }
-//                }
-//            ]
-//        }))
-//        .pipe(rename('index.html'))
-//        .pipe(gulp.dest('./'));
-//});
+gulp.task('production', function () {
+
+   gulp.src('assets/index.html')
+       .pipe(replace({
+           patterns: [
+               {
+                   match: /{config}/g,
+                   replacement: function () {
+                       var DI = config;
+                       delete DI.libs;
+
+                       return JSON.stringify(DI);
+                   }
+               },
+               {
+                   match: /{javascript}/g,
+                   replacement: function () {
+                       var result = '';
+                       var js = [
+                           'build/javascript.js'
+                       ];
+
+                       for(var i in js) {
+                           result += '<script src="' + js[i] + '"></script>\n';
+                       }
+
+                       return result;
+                   }
+               },
+               {
+                   match: /{stylesheet}/g,
+                   replacement: function () {
+                       return '<link rel="stylesheet" type="text/css" href="build/stylesheet.css">\n';
+                   }
+               }
+           ]
+       }))
+       .pipe(rename('index.html'))
+       .pipe(gulp.dest('./'));
+});
 
 gulp.task('build', function () {
     gulp.start(['stylesheet', 'javascript', 'framework', 'development', 'docs']);

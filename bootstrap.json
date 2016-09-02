@@ -8,33 +8,33 @@
   "build": {
     "libs": [
       {
-        "name": "jQuery",
+        "name": "jquery",
         "javascript": ["//cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js"]
       },
       {
-        "name": "Tether",
+        "name": "tether",
         "javascript": ["//cdnjs.cloudflare.com/ajax/libs/tether/1.3.2/js/tether.min.js"]
       },
       {
-        "name": "Bootstrap 4",
+        "name": "bootstrap-4",
         "javascript": ["//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/js/bootstrap.min.js"],
         "stylesheet": ["//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/css/bootstrap.css"]
       },
       {
-        "name": "Font-Awesome",
-        "javascript": ["//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css"]
+        "name": "font-awesome",
+        "stylesheet": ["//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.css"]
       },
       {
-        "name": "Hightlight.js",
+        "name": "hightlight.js",
         "javascript": ["//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/highlight.min.js"],
         "stylesheet": ["//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/github.min.css"]
       },
       {
-        "name": "showdown",
+        "name": "showdown.js",
         "javascript": ["//cdnjs.cloudflare.com/ajax/libs/showdown/1.4.1/showdown.min.js"]
       },
       {
-        "name": "Marmaid",
+        "name": "marmaid.js",
         "javascript": ["//cdnjs.cloudflare.com/ajax/libs/mermaid/6.0.0/mermaid.min.js"],
         "stylesheet": ["//cdnjs.cloudflare.com/ajax/libs/mermaid/6.0.0/mermaid.min.css"]
       },
@@ -57,7 +57,7 @@
           "framework"
         ],
         "stylesheet": [
-          "module/example/styles.scss"
+          "module/example/stylesheet.scss"
         ]
       }
     ]
