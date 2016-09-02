@@ -1,35 +1,60 @@
 require('any-promise/register/bluebird');
 require('any-promise/register')('bluebird', {Promise: require('bluebird')});
 
-var fs = require('fs'),
-    gulp = require('gulp'),
-    sass = require('gulp-sass'),
-    concat = require('gulp-concat'),
-    cleanCSS = require('gulp-clean-css'),
-    rename = require('gulp-rename'),
-    replace = require('gulp-replace-task'),
-    packageJson = require('./package.json'),
+var fs            = require('fs'),
+    gulp          = require('gulp'),
+    sass          = require('gulp-sass'),
+    concat        = require('gulp-concat'),
+    cleanCSS      = require('gulp-clean-css'),
+    rename        = require('gulp-rename'),
+    replace       = require('gulp-replace-task'),
+    packageJson   = require('./package.json'),
     NodeFramework = require('./core/NodeFramework.js'),
-    sourceJs = [],
-    sourceScss = [];
+    gutil         = require('gulp-util'),
+    localJs       = [],
+    localScss     = [],
+    remoteScss    = [],
+    remoteJs      = [];
 
 var config = JSON.parse(fs.readFileSync('bootstrap.json', 'utf8'));
 NodeFramework.setConfig(config);
-var libs = NodeFramework.resolveDependencies('dependencies');
+var libraries = NodeFramework.resolveDependencies('dependencies');
 
-for (var i in libs) {
 
-    if (libs[i].hasOwnProperty('scss')) {
-        sourceScss = sourceScss.concat(libs[i].scss);
+var fileIndex, file;
+
+for (var libraryIndex in libraries) {
+    var library = libraries[libraryIndex];
+
+    if (library.hasOwnProperty('stylesheet')) {
+        for (fileIndex in library.stylesheet) {
+            file = library.stylesheet[fileIndex];
+
+            if (file.indexOf('//') < -1) {
+                localScss.push(file);
+            } else {
+                remoteScss.push(file);
+            }
+        }
     }
 
-    if (libs[i].hasOwnProperty('js')) {
-        sourceJs = sourceJs.concat(libs[i].js);
+    if (library.hasOwnProperty('javascript')) {
+        for (fileIndex in library.javascript) {
+            file = library.javascript[fileIndex];
+
+            if (file.indexOf('//') < -1) {
+                localJs.push(file);
+            } else {
+                remoteJs.push(file);
+            }
+        }
     }
 }
 
+gutil.log(localJs, remoteJs);
+
 gulp.task('stylesheet', function () {
-    gulp.src(sourceScss)
+    gulp.src(localScss)
         .pipe(sass().on('error', sass.logError))
         .pipe(concat('stylesheet.css'))
         .pipe(cleanCSS())
@@ -37,14 +62,14 @@ gulp.task('stylesheet', function () {
 });
 
 gulp.task('javascript', function () {
-    gulp.src(sourceJs)
+    gulp.src(localJs)
         .pipe(concat('javascript.js'))
         .pipe(gulp.dest('./build'));
 });
 
 gulp.task('framework', function () {
-    var lib = NodeFramework.getLibrary(libs, 'framework');
-    
+    var lib = NodeFramework.getLibrary(libraries, 'framework');
+
     gulp.src(lib.js)
         .pipe(concat('frontend-framework-' + packageJson.version + '.js'))
         .pipe(gulp.dest('./build'));
@@ -56,7 +81,7 @@ gulp.task('development', function () {
         .pipe(replace({
             patterns: [
                 {
-                    match: /{config}/g,
+                    match      : /{config}/g,
                     replacement: function () {
                         var DI = config;
                         delete DI.build;
@@ -65,21 +90,33 @@ gulp.task('development', function () {
                     }
                 },
                 {
-                    match: /{javascript}/g,
+                    match      : /{javascript}/g,
                     replacement: function () {
                         var result = '';
 
-                        for(var i in sourceJs) {
-                            result += '<script src="' + sourceJs[i] + '"></script>\n';
+                        for (var i in remoteJs) {
+                            result += '<script src="' + remoteJs[i] + '"></script>\n';
+                        }
+
+                        for (var j in localJs) {
+                            result += '<script src="' + localJs[j] + '"></script>\n';
                         }
 
                         return result;
                     }
                 },
                 {
-                    match: /{stylesheet}/g,
+                    match      : /{stylesheet}/g,
                     replacement: function () {
-                        return '<link rel="stylesheet" type="text/css" href="build/stylesheet.css">\n';
+
+                        var result = '',
+                            style  = remoteScss.concat(['build/stylesheet.css']);
+
+                        for (var i in style) {
+                            result += '<link rel="stylesheet" type="text/css" href="' + style[i] + '">\n';
+                        }
+
+                        return result;
                     }
                 }
             ]
@@ -88,57 +125,58 @@ gulp.task('development', function () {
         .pipe(gulp.dest('./'));
 });
 
-gulp.task('production', function () {
-
-    gulp.src('assets/index.html')
-        .pipe(replace({
-            patterns: [
-                {
-                    match: /{config}/g,
-                    replacement: function () {
-                        var DI = config;
-                        delete DI.libs;
-
-                        return JSON.stringify(DI);
-                    }
-                },
-                {
-                    match: /{javascript}/g,
-                    replacement: function () {
-                        var result = '';
-                        var js = [
-                            'build/javascript.js'
-                        ];
-
-                        for(var i in js) {
-                            result += '<script src="' + js[i] + '"></script>\n';
-                        }
-
-                        return result;
-                    }
-                },
-                {
-                    match: /{stylesheet}/g,
-                    replacement: function () {
-                        return '<link rel="stylesheet" type="text/css" href="build/stylesheet.css">\n';
-                    }
-                }
-            ]
-        }))
-        .pipe(rename('index.html'))
-        .pipe(gulp.dest('./'));
-});
+//gulp.task('production', function () {
+//
+//    gulp.src('assets/index.html')
+//        .pipe(replace({
+//            patterns: [
+//                {
+//                    match: /{config}/g,
+//                    replacement: function () {
+//                        var DI = config;
+//                        delete DI.libs;
+//
+//                        return JSON.stringify(DI);
+//                    }
+//                },
+//                {
+//                    match: /{javascript}/g,
+//                    replacement: function () {
+//                        var result = '';
+//                        var js = [
+//                            'build/javascript.js'
+//                        ];
+//
+//                        for(var i in js) {
+//                            result += '<script src="' + js[i] + '"></script>\n';
+//                        }
+//
+//                        return result;
+//                    }
+//                },
+//                {
+//                    match: /{stylesheet}/g,
+//                    replacement: function () {
+//                        return '<link rel="stylesheet" type="text/css" href="build/stylesheet.css">\n';
+//                    }
+//                }
+//            ]
+//        }))
+//        .pipe(rename('index.html'))
+//        .pipe(gulp.dest('./'));
+//});
 
 gulp.task('build', function () {
-    gulp.start(['stylesheet', 'javascript', 'framework', 'development', 'production', 'docs']);
+    gulp.start(['stylesheet', 'javascript', 'framework', 'development', 'docs']);
 });
 
 gulp.task('docs', function () {
     var jsdox = require("jsdox");
 
-    jsdox.generateForDir('./core', './module/example/assets/docs', './assets/templates', function() {});
+    jsdox.generateForDir('./core', './module/example/assets/docs', './assets/templates', function () {
+    });
 });
 
 gulp.task('watch', function () {
-    gulp.watch(sourceScss, ['stylesheet']);
+    gulp.watch(localScss, ['stylesheet']);
 });
