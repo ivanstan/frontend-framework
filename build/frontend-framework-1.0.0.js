@@ -455,6 +455,7 @@ class Framework {
      * @param {Route} route
      */
     navigate(route) {
+
         this.route = route;
         var current = _current.get(this);
 
@@ -619,7 +620,7 @@ class Framework {
                 return false;
             }
 
-            window['toastr'][type](title, message);
+            window['toastr'][type](message, title);
             return void(0);
         }
 

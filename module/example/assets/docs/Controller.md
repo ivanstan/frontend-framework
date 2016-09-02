@@ -19,31 +19,37 @@ Class constructor.
 **template**:  , Template property setter.
 ### Controller.preRender(defer) 
 
-preRenderExecuted before state rendering process starts.
+preRender
+Executed before state rendering process starts.
 
 **Parameters**
 
-**defer**: `Deferred`, preRenderExecuted before state rendering process starts.
+**defer**: `Deferred`, preRender
+Executed before state rendering process starts.
 
 **Returns**: `Promise`, promise
 
 ### Controller.postRender(defer) 
 
-postRenderExecuted once state rendering is complete.
+postRender
+Executed once state rendering is complete.
 
 **Parameters**
 
-**defer**: `Deferred`, postRenderExecuted once state rendering is complete.
+**defer**: `Deferred`, postRender
+Executed once state rendering is complete.
 
 **Returns**: `Promise`
 
 ### Controller.destructor(defer) 
 
-Destructor.Executed when state change is requested.
+Destructor.
+Executed when state change is requested.
 
 **Parameters**
 
-**defer**: `Deferred`, Destructor.Executed when state change is requested.
+**defer**: `Deferred`, Destructor.
+Executed when state change is requested.
 
 **Returns**: `Promise`
 

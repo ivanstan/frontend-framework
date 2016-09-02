@@ -7,7 +7,6 @@ var fs = require('fs'),
     concat = require('gulp-concat'),
     cleanCSS = require('gulp-clean-css'),
     rename = require('gulp-rename'),
-    inject = require('gulp-inject'),
     replace = require('gulp-replace-task'),
     packageJson = require('./package.json'),
     NodeFramework = require('./core/NodeFramework.js'),
@@ -29,15 +28,15 @@ for (var i in libs) {
     }
 }
 
-gulp.task('styles', function () {
+gulp.task('stylesheet', function () {
     gulp.src(sourceScss)
         .pipe(sass().on('error', sass.logError))
-        .pipe(concat('styles.css'))
+        .pipe(concat('stylesheet.css'))
         .pipe(cleanCSS())
         .pipe(gulp.dest('./build'));
 });
 
-gulp.task('js', function () {
+gulp.task('javascript', function () {
     gulp.src(sourceJs)
         .pipe(concat('javascript.js'))
         .pipe(gulp.dest('./build'));
@@ -54,19 +53,33 @@ gulp.task('framework', function () {
 gulp.task('development', function () {
 
     gulp.src('assets/index.html')
-        .pipe(inject(gulp.src(sourceJs.concat(['build/styles.css']), {read: false}), {
-            relative: false,
-            addRootSlash: false
-        }))
         .pipe(replace({
             patterns: [
                 {
-                    match: /{bootstrap.json}/g,
+                    match: /{config}/g,
                     replacement: function () {
                         var DI = config;
-                        delete DI.libs;
+                        delete DI.build;
 
                         return JSON.stringify(DI);
+                    }
+                },
+                {
+                    match: /{javascript}/g,
+                    replacement: function () {
+                        var result = '';
+
+                        for(var i in sourceJs) {
+                            result += '<script src="' + sourceJs[i] + '"></script>\n';
+                        }
+
+                        return result;
+                    }
+                },
+                {
+                    match: /{stylesheet}/g,
+                    replacement: function () {
+                        return '<link rel="stylesheet" type="text/css" href="build/stylesheet.css">\n';
                     }
                 }
             ]
@@ -78,19 +91,36 @@ gulp.task('development', function () {
 gulp.task('production', function () {
 
     gulp.src('assets/index.html')
-        .pipe(inject(gulp.src(['build/frontend-framework-1.0.0.js', 'build/javascript.js', 'build/styles.css'], {read: false}), {
-            relative: false,
-            addRootSlash: false
-        }))
         .pipe(replace({
             patterns: [
                 {
-                    match: /{bootstrap.json}/g,
+                    match: /{config}/g,
                     replacement: function () {
                         var DI = config;
                         delete DI.libs;
 
                         return JSON.stringify(DI);
+                    }
+                },
+                {
+                    match: /{javascript}/g,
+                    replacement: function () {
+                        var result = '';
+                        var js = [
+                            'build/javascript.js'
+                        ];
+
+                        for(var i in js) {
+                            result += '<script src="' + js[i] + '"></script>\n';
+                        }
+
+                        return result;
+                    }
+                },
+                {
+                    match: /{stylesheet}/g,
+                    replacement: function () {
+                        return '<link rel="stylesheet" type="text/css" href="build/stylesheet.css">\n';
                     }
                 }
             ]
@@ -100,7 +130,7 @@ gulp.task('production', function () {
 });
 
 gulp.task('build', function () {
-    gulp.start(['styles', 'js', 'framework', 'development', 'production', 'docs']);
+    gulp.start(['stylesheet', 'javascript', 'framework', 'development', 'production', 'docs']);
 });
 
 gulp.task('docs', function () {
@@ -110,5 +140,5 @@ gulp.task('docs', function () {
 });
 
 gulp.task('watch', function () {
-    gulp.watch(sourceScss, ['styles']);
+    gulp.watch(sourceScss, ['stylesheet']);
 });

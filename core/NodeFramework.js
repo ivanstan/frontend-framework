@@ -1,7 +1,7 @@
 module.exports = {
 
-    setConfig: function (settings) {
-        this.settings = settings;
+    setConfig: function (config) {
+        this.config = config;
     },
 
     resolveDependencies: function (key) {
@@ -27,11 +27,11 @@ module.exports = {
             return true;
         }
 
-        while (this.settings.libs.length > 0) {
-            for (var i in this.settings.libs) {
-                if (canResolve(this.settings.libs[i], resolved)) {
-                    sorted.push(this.settings.libs[i]);
-                    this.settings.libs.splice(i, 1);
+        while (this.config.build.libs.length > 0) {
+            for (var i in this.config.build.libs) {
+                if (canResolve(this.config.build.libs[i], resolved)) {
+                    sorted.push(this.config.build.libs[i]);
+                    this.config.build.libs.splice(i, 1);
                     resolved = arrayFromKey(sorted, 'name');
                 }
             }
