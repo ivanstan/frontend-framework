@@ -114,14 +114,18 @@ gulp.task('development', function () {
                 {
                     match: /{javascript}/g,
                     replacement: function () {
-                        var result = '';
+                        var result = '',
+                            uri,
+                            resource = [];
 
-                        for (var i in remoteJavascript) {
-                            result += '<script src="' + remoteJavascript[i] + '"></script>\n';
-                        }
+                        resource = resource.concat(remoteJavascript);
+                        resource = resource.concat(localJavascript);
 
-                        for (var j in localJavascript) {
-                            result += '<script src="' + localJavascript[j] + '"></script>\n';
+                        for (var i in resource) {
+                            uri = resource[i].replace('https://', '//');
+                            uri = uri.replace('http://', '//');
+
+                            result += '<script src="' + uri + '"></script>\n';
                         }
 
                         return result;
@@ -131,10 +135,16 @@ gulp.task('development', function () {
                     match: /{stylesheet}/g,
                     replacement: function () {
                         var result = '',
-                            stylesheet = remoteStylesheet.concat(['build/stylesheet-dev.css']);
+                            uri,
+                            resource = ['build/stylesheet-dev.css'];
 
-                        for (var i in stylesheet) {
-                            result += '<link rel="stylesheet" type="text/css" href="' + stylesheet[i] + '">\n';
+                        resource = resource.concat(remoteStylesheet);
+
+                        for (var i in resource) {
+                            uri = resource[i].replace('https://', '//');
+                            uri = uri.replace('http://', '//');
+
+                            result += '<link rel="stylesheet" type="text/css" href="' + uri + '">\n';
                         }
 
                         return result;
@@ -175,14 +185,18 @@ gulp.task('production', function () {
                 {
                     match: /{javascript}/g,
                     replacement: function () {
-                        var result = '<script src="build/javascript.js"></script>\n';
+                        var result = '',
+                            uri,
+                            resource = ['build/javascript.js'];
 
-                        for (var i in remoteExternalJavascript) {
-                            result += '<script src="' + remoteExternalJavascript[i] + '"></script>\n';
-                        }
+                        resource = resource.concat(remoteExternalJavascript);
+                        resource = resource.concat(localExternalJavascript);
 
-                        for (var j in localExternalJavascript) {
-                            result += '<script src="' + localExternalJavascript[i] + '"></script>\n';
+                        for (var i in resource) {
+                            uri = resource[i].replace('https://', '//');
+                            uri = uri.replace('http://', '//');
+
+                            result += '<script src="' + uri + '"></script>\n';
                         }
 
                         return result;
@@ -191,14 +205,18 @@ gulp.task('production', function () {
                 {
                     match: /{stylesheet}/g,
                     replacement: function () {
-                        var result = '<link rel="stylesheet" type="text/css" href="build/stylesheet.css">\n';
+                        var result = '',
+                            uri,
+                            resource = ['build/stylesheet.css'];
 
-                        for (var i in remoteExternalStylesheet) {
-                            result += '<link rel="stylesheet" type="text/css" href="' + remoteExternalStylesheet[i] + '">\n';
-                        }
+                        resource = resource.concat(remoteExternalStylesheet);
+                        resource = resource.concat(localExternalStylesheet);
 
-                        for (var j in localExternalStylesheet) {
-                            result += '<link rel="stylesheet" type="text/css" href="' + localExternalStylesheet[i] + '">\n';
+                        for (var i in resource) {
+                            uri = resource[i].replace('https://', '//');
+                            uri = uri.replace('http://', '//');
+
+                            result += '<link rel="stylesheet" type="text/css" href="' + uri + '">\n';
                         }
 
                         return result;
