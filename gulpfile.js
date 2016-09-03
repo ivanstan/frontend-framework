@@ -19,42 +19,85 @@ gulp.merge = require('merge2');
 var config = JSON.parse(fs.readFileSync('bootstrap.json', 'utf8'));
 NodeFramework.setConfig(config);
 var libraries = NodeFramework.resolveDependencies('dependencies');
-var fileIndex, file;
 
-gulp.task('development', function () {
+var fileIndex,
+    file;
 
-    var localJs = [],
-        localScss = [],
-        remoteScss = [],
-        remoteJs = [];
+var remoteInternalStylesheet = [],
+    remoteExternalStylesheet = [],
+    localInternalStylesheet = [],
+    localExternalStylesheet = [];
 
-    for (var libraryIndex in libraries) {
-        var library = libraries[libraryIndex];
+var remoteInternalJavascript = [],
+    remoteExternalJavascript = [],
+    localInternalJavascript = [],
+    localExternalJavascript = [];
 
-        if (library.hasOwnProperty('stylesheet')) {
-            for (fileIndex in library.stylesheet) {
-                file = library.stylesheet[fileIndex];
+var localJavascript = [],
+    localStylesheet = [],
+    remoteStylesheet = [],
+    remoteJavascript = [];
 
-                if (file.indexOf('//') == -1) {
-                    localScss.push(file);
+for (var libraryIndex in libraries) {
+    var library = libraries[libraryIndex];
+    var pack = typeof libraries[libraryIndex]['package'] != 'undefined' ? libraries[libraryIndex]['package'] : true;
+
+    if (library.hasOwnProperty('stylesheet')) {
+        for (fileIndex in library.stylesheet) {
+            file = library.stylesheet[fileIndex];
+
+            if (file.indexOf('//') == -1) {
+                if (pack) {
+                    localInternalStylesheet.push(file);
                 } else {
-                    remoteScss.push(file);
+                    localInternalStylesheet.push(file);
                 }
-            }
-        }
-
-        if (library.hasOwnProperty('javascript')) {
-            for (fileIndex in library.javascript) {
-                file = library.javascript[fileIndex];
-
-                if (file.indexOf('//') == -1) {
-                    localJs.push(file);
+                localStylesheet.push(file);
+            } else {
+                if (pack) {
+                    remoteInternalStylesheet.push(file);
                 } else {
-                    remoteJs.push(file);
+                    remoteExternalStylesheet.push(file);
                 }
+                remoteStylesheet.push(file);
             }
         }
     }
+
+    if (library.hasOwnProperty('javascript')) {
+        for (fileIndex in library.javascript) {
+            file = library.javascript[fileIndex];
+
+            if (file.indexOf('//') == -1) {
+                if (pack) {
+                    localInternalJavascript.push(file);
+                } else {
+                    localExternalJavascript.push(file);
+                }
+                localJavascript.push(file);
+            } else {
+                if (pack) {
+                    remoteInternalJavascript.push(file);
+                } else {
+                    remoteExternalJavascript.push(file);
+                }
+                remoteJavascript.push(file);
+            }
+        }
+    }
+}
+
+gulp.task('stylesheet', function () {
+
+    gulp.src(localInternalStylesheet)
+        .pipe(sass().on('error', sass.logError))
+        .pipe(concat('stylesheet-dev.css'))
+        .pipe(cleanCSS())
+        .pipe(gulp.dest('./build'));
+
+});
+
+gulp.task('development', function () {
 
     gulp.src('assets/index.html')
         .pipe(replace({
@@ -73,12 +116,12 @@ gulp.task('development', function () {
                     replacement: function () {
                         var result = '';
 
-                        for (var i in remoteJs) {
-                            result += '<script src="' + remoteJs[i] + '"></script>\n';
+                        for (var i in remoteJavascript) {
+                            result += '<script src="' + remoteJavascript[i] + '"></script>\n';
                         }
 
-                        for (var j in localJs) {
-                            result += '<script src="' + localJs[j] + '"></script>\n';
+                        for (var j in localJavascript) {
+                            result += '<script src="' + localJavascript[j] + '"></script>\n';
                         }
 
                         return result;
@@ -87,12 +130,11 @@ gulp.task('development', function () {
                 {
                     match: /{stylesheet}/g,
                     replacement: function () {
-
                         var result = '',
-                            style = remoteScss.concat(['build/stylesheet.css']);
+                            stylesheet = remoteStylesheet.concat(['build/stylesheet-dev.css']);
 
-                        for (var i in style) {
-                            result += '<link rel="stylesheet" type="text/css" href="' + style[i] + '">\n';
+                        for (var i in stylesheet) {
+                            result += '<link rel="stylesheet" type="text/css" href="' + stylesheet[i] + '">\n';
                         }
 
                         return result;
@@ -106,71 +148,16 @@ gulp.task('development', function () {
 
 gulp.task('production', function () {
 
-    var remoteInternalStylesheet = [],
-        remoteExternalStylesheet = [],
-        localInternalStylesheet = [],
-        localExternalStylesheet = [];
-
-    var remoteInternalJavascript = [],
-        remoteExternalJavascript = [],
-        localInternalJavascript = [],
-        localExternalJavascript = [];
-
-    for (var libraryIndex in libraries) {
-        var library = libraries[libraryIndex];
-        var pack = typeof libraries[libraryIndex]['package'] != 'undefined' ? libraries[libraryIndex]['package'] : true;
-
-        if (library.hasOwnProperty('stylesheet')) {
-            for (var fileIndex in library.stylesheet) {
-                file = library.stylesheet[fileIndex];
-
-                if (file.indexOf('//') == -1) {
-                    if (pack) {
-                        localInternalStylesheet.push(file);
-                    } else {
-                        localInternalStylesheet.push(file);
-                    }
-                } else {
-                    if (pack) {
-                        remoteInternalStylesheet.push(file);
-                    } else {
-                        remoteExternalStylesheet.push(file);
-                    }
-                }
-            }
-        }
-
-        if (library.hasOwnProperty('javascript')) {
-            for (fileIndex in library.javascript) {
-                file = library.javascript[fileIndex];
-
-                if (file.indexOf('//') == -1) {
-                    if (pack) {
-                        localInternalJavascript.push(file);
-                    } else {
-                        localExternalJavascript.push(file);
-                    }
-                } else {
-                    if (pack) {
-                        remoteInternalJavascript.push(file);
-                    } else {
-                        remoteExternalJavascript.push(file);
-                    }
-                }
-            }
-        }
-    }
+    gulp.merge(gulp.remote(remoteInternalJavascript), gulp.src(localInternalJavascript))
+        .pipe(sourcemaps.init())
+        .pipe(concat('javascript.js'))
+        .pipe(sourcemaps.write())
+        .pipe(gulp.dest('./build'));
 
     gulp.merge(gulp.remote(remoteInternalStylesheet), gulp.src(localInternalStylesheet))
         .pipe(sass().on('error', sass.logError))
         .pipe(concat('stylesheet.css'))
         .pipe(cleanCSS())
-        .pipe(gulp.dest('./build'));
-
-    gulp.merge(gulp.remote(remoteInternalJavascript), gulp.src(localInternalJavascript))
-        .pipe(sourcemaps.init())
-        .pipe(concat('javascript.js'))
-        .pipe(sourcemaps.write())
         .pipe(gulp.dest('./build'));
 
     gulp.src('assets/index.html')
@@ -240,4 +227,8 @@ gulp.task('docs', function () {
 
 gulp.task('build', function () {
     gulp.start(['development', 'production', 'framework', 'docs']);
+});
+
+gulp.task('watch', function () {
+    gulp.watch(localStylesheet, ['stylesheet']);
 });
