@@ -30,8 +30,6 @@ for (var libraryIndex in libraries) {
         for (fileIndex in library.stylesheet) {
             file = library.stylesheet[fileIndex];
 
-            gutil.log(file, file.indexOf('//'));
-
             if (file.indexOf('//') == -1) {
                 localScss.push(file);
             } else {
@@ -61,21 +59,11 @@ gulp.task('stylesheet', function () {
         .pipe(gulp.dest('./build'));
 });
 
-gulp.task('javascript', function () {
+gulp.task('development', function () {
+
     gulp.src(localJs)
         .pipe(concat('javascript.js'))
         .pipe(gulp.dest('./build'));
-});
-
-gulp.task('framework', function () {
-    var lib = NodeFramework.getLibrary(libraries, 'framework');
-
-    gulp.src(lib.javascript)
-        .pipe(concat('frontend-framework-' + packageJson.version + '.js'))
-        .pipe(gulp.dest('./build'));
-});
-
-gulp.task('development', function () {
 
     gulp.src('assets/index.html')
         .pipe(replace({
@@ -166,8 +154,12 @@ gulp.task('production', function () {
        .pipe(gulp.dest('./'));
 });
 
-gulp.task('build', function () {
-    gulp.start(['stylesheet', 'javascript', 'framework', 'development', 'docs']);
+gulp.task('framework', function () {
+    var lib = NodeFramework.getLibrary(libraries, 'framework');
+
+    gulp.src(lib.javascript)
+        .pipe(concat('frontend-framework-' + packageJson.version + '.js'))
+        .pipe(gulp.dest('./build'));
 });
 
 gulp.task('docs', function () {
@@ -175,6 +167,10 @@ gulp.task('docs', function () {
 
     jsdox.generateForDir('./core', './module/example/assets/docs', './assets/templates', function () {
     });
+});
+
+gulp.task('build', function () {
+    gulp.start(['stylesheet', 'development', 'production', 'framework', 'docs']);
 });
 
 gulp.task('watch', function () {
