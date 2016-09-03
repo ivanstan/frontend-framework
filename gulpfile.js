@@ -1,75 +1,66 @@
 require('any-promise/register/bluebird');
 require('any-promise/register')('bluebird', {Promise: require('bluebird')});
 
-var fs            = require('fs'),
-    gulp          = require('gulp'),
-    sass          = require('gulp-sass'),
-    concat        = require('gulp-concat'),
-    cleanCSS      = require('gulp-clean-css'),
-    rename        = require('gulp-rename'),
-    replace       = require('gulp-replace-task'),
-    packageJson   = require('./package.json'),
+var fs = require('fs'),
+    gulp = require('gulp'),
+    sass = require('gulp-sass'),
+    concat = require('gulp-concat'),
+    cleanCSS = require('gulp-clean-css'),
+    rename = require('gulp-rename'),
+    sourcemaps = require('gulp-sourcemaps'),
+    replace = require('gulp-replace-task'),
+    packageJson = require('./package.json'),
     NodeFramework = require('./core/NodeFramework.js'),
-    gutil         = require('gulp-util'),
-    localJs       = [],
-    localScss     = [],
-    remoteScss    = [],
-    remoteJs      = [];
+    gutil = require('gulp-util');
+
+gulp.remote = require('gulp-remote-src');
+gulp.merge = require('merge2');
 
 var config = JSON.parse(fs.readFileSync('bootstrap.json', 'utf8'));
 NodeFramework.setConfig(config);
 var libraries = NodeFramework.resolveDependencies('dependencies');
-
-
 var fileIndex, file;
-
-for (var libraryIndex in libraries) {
-    var library = libraries[libraryIndex];
-
-    if (library.hasOwnProperty('stylesheet')) {
-        for (fileIndex in library.stylesheet) {
-            file = library.stylesheet[fileIndex];
-
-            if (file.indexOf('//') == -1) {
-                localScss.push(file);
-            } else {
-                remoteScss.push(file);
-            }
-        }
-    }
-
-    if (library.hasOwnProperty('javascript')) {
-        for (fileIndex in library.javascript) {
-            file = library.javascript[fileIndex];
-
-            if (file.indexOf('//') == -1) {
-                localJs.push(file);
-            } else {
-                remoteJs.push(file);
-            }
-        }
-    }
-}
-
-gulp.task('stylesheet', function () {
-    gulp.src(localScss)
-        .pipe(sass().on('error', sass.logError))
-        .pipe(concat('stylesheet.css'))
-        .pipe(cleanCSS())
-        .pipe(gulp.dest('./build'));
-});
 
 gulp.task('development', function () {
 
-    gulp.src(localJs)
-        .pipe(concat('javascript.js'))
-        .pipe(gulp.dest('./build'));
+    var localJs = [],
+        localScss = [],
+        remoteScss = [],
+        remoteJs = [];
+
+    for (var libraryIndex in libraries) {
+        var library = libraries[libraryIndex];
+
+        if (library.hasOwnProperty('stylesheet')) {
+            for (fileIndex in library.stylesheet) {
+                file = library.stylesheet[fileIndex];
+
+                if (file.indexOf('//') == -1) {
+                    localScss.push(file);
+                } else {
+                    remoteScss.push(file);
+                }
+            }
+        }
+
+        if (library.hasOwnProperty('javascript')) {
+            for (fileIndex in library.javascript) {
+                file = library.javascript[fileIndex];
+
+                if (file.indexOf('//') == -1) {
+                    localJs.push(file);
+                } else {
+                    remoteJs.push(file);
+                }
+            }
+        }
+    }
 
     gulp.src('assets/index.html')
         .pipe(replace({
             patterns: [
                 {
-                    match      : /{config}/g,
+                    match: /{config}/g,
                     replacement: function () {
                         var DI = config;
                         delete DI.build;
@@ -78,7 +69,7 @@ gulp.task('development', function () {
                     }
                 },
                 {
-                    match      : /{javascript}/g,
+                    match: /{javascript}/g,
                     replacement: function () {
                         var result = '';
 
@@ -94,11 +85,11 @@ gulp.task('development', function () {
                     }
                 },
                 {
-                    match      : /{stylesheet}/g,
+                    match: /{stylesheet}/g,
                     replacement: function () {
 
                         var result = '',
-                            style  = remoteScss.concat(['build/stylesheet.css']);
+                            style = remoteScss.concat(['build/stylesheet.css']);
 
                         for (var i in style) {
                             result += '<link rel="stylesheet" type="text/css" href="' + style[i] + '">\n';
@@ -115,43 +106,121 @@ gulp.task('development', function () {
 
 gulp.task('production', function () {
 
-   gulp.src('assets/index.html')
-       .pipe(replace({
-           patterns: [
-               {
-                   match: /{config}/g,
-                   replacement: function () {
-                       var DI = config;
-                       delete DI.libs;
+    var remoteInternalStylesheet = [],
+        remoteExternalStylesheet = [],
+        localInternalStylesheet = [],
+        localExternalStylesheet = [];
 
-                       return JSON.stringify(DI);
-                   }
-               },
-               {
-                   match: /{javascript}/g,
-                   replacement: function () {
-                       var result = '';
-                       var js = [
-                           'build/javascript.js'
-                       ];
+    var remoteInternalJavascript = [],
+        remoteExternalJavascript = [],
+        localInternalJavascript = [],
+        localExternalJavascript = [];
 
-                       for(var i in js) {
-                           result += '<script src="' + js[i] + '"></script>\n';
-                       }
+    for (var libraryIndex in libraries) {
+        var library = libraries[libraryIndex];
+        var pack = typeof libraries[libraryIndex]['package'] != 'undefined' ? libraries[libraryIndex]['package'] : true;
 
-                       return result;
-                   }
-               },
-               {
-                   match: /{stylesheet}/g,
-                   replacement: function () {
-                       return '<link rel="stylesheet" type="text/css" href="build/stylesheet.css">\n';
-                   }
-               }
-           ]
-       }))
-       .pipe(rename('index.html'))
-       .pipe(gulp.dest('./'));
+        if (library.hasOwnProperty('stylesheet')) {
+            for (var fileIndex in library.stylesheet) {
+                file = library.stylesheet[fileIndex];
+
+                if (file.indexOf('//') == -1) {
+                    if (pack) {
+                        localInternalStylesheet.push(file);
+                    } else {
+                        localInternalStylesheet.push(file);
+                    }
+                } else {
+                    if (pack) {
+                        remoteInternalStylesheet.push(file);
+                    } else {
+                        remoteExternalStylesheet.push(file);
+                    }
+                }
+            }
+        }
+
+        if (library.hasOwnProperty('javascript')) {
+            for (fileIndex in library.javascript) {
+                file = library.javascript[fileIndex];
+
+                if (file.indexOf('//') == -1) {
+                    if (pack) {
+                        localInternalJavascript.push(file);
+                    } else {
+                        localExternalJavascript.push(file);
+                    }
+                } else {
+                    if (pack) {
+                        remoteInternalJavascript.push(file);
+                    } else {
+                        remoteExternalJavascript.push(file);
+                    }
+                }
+            }
+        }
+    }
+
+    gulp.merge(gulp.remote(remoteInternalStylesheet), gulp.src(localInternalStylesheet))
+        .pipe(sass().on('error', sass.logError))
+        .pipe(concat('stylesheet.css'))
+        .pipe(cleanCSS())
+        .pipe(gulp.dest('./build'));
+
+    gulp.merge(gulp.remote(remoteInternalJavascript), gulp.src(localInternalJavascript))
+        .pipe(sourcemaps.init())
+        .pipe(concat('javascript.js'))
+        .pipe(sourcemaps.write())
+        .pipe(gulp.dest('./build'));
+
+    gulp.src('assets/index.html')
+        .pipe(replace({
+            patterns: [
+                {
+                    match: /{config}/g,
+                    replacement: function () {
+                        var DI = config;
+                        delete DI.libs;
+
+                        return JSON.stringify(DI);
+                    }
+                },
+                {
+                    match: /{javascript}/g,
+                    replacement: function () {
+                        var result = '<script src="build/javascript.js"></script>\n';
+
+                        for (var i in remoteExternalJavascript) {
+                            result += '<script src="' + remoteExternalJavascript[i] + '"></script>\n';
+                        }
+
+                        for (var j in localExternalJavascript) {
+                            result += '<script src="' + localExternalJavascript[i] + '"></script>\n';
+                        }
+
+                        return result;
+                    }
+                },
+                {
+                    match: /{stylesheet}/g,
+                    replacement: function () {
+                        var result = '<link rel="stylesheet" type="text/css" href="build/stylesheet.css">\n';
+
+                        for (var i in remoteExternalStylesheet) {
+                            result += '<link rel="stylesheet" type="text/css" href="' + remoteExternalStylesheet[i] + '">\n';
+                        }
+
+                        for (var j in localExternalStylesheet) {
+                            result += '<link rel="stylesheet" type="text/css" href="' + localExternalStylesheet[i] + '">\n';
+                        }
+
+                        return result;
+                    }
+                }
+            ]
+        }))
+        .pipe(rename('index.html'))
+        .pipe(gulp.dest('./'));
 });
 
 gulp.task('framework', function () {
@@ -170,9 +239,5 @@ gulp.task('docs', function () {
 });
 
 gulp.task('build', function () {
-    gulp.start(['stylesheet', 'development', 'production', 'framework', 'docs']);
-});
-
-gulp.task('watch', function () {
-    gulp.watch(localScss, ['stylesheet']);
+    gulp.start(['development', 'production', 'framework', 'docs']);
 });
