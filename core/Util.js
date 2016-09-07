@@ -26,6 +26,10 @@ class Util {
         return template.html();
     }
 
+    static isChrome() {
+        return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    }
+
 }
 
 

@@ -31,6 +31,10 @@
         "stylesheet": ["vendor/docrx/build/docrx.min.css"]
       },
       {
+        "name": "redux",
+        "javascript": ["https://cdnjs.cloudflare.com/ajax/libs/redux/3.6.0/redux.min.js"]
+      },
+      {
         "name": "framework",
         "javascript": [
           "core/Util.js",
