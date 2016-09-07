@@ -9,7 +9,7 @@ Each module defines its own routing of states and can also override routing prov
 Once application is bootstraped all modules will be created and their constructors will be called.
 This is one time event that occurs when user has accessed the application for the first time.
 
-<div class="mermaid">
+<div class="mermaid" style="width: 370px;">
 graph LR;
     AL(Application Loaded)-->MC(Module constructors);
 </div>
