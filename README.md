@@ -1,18 +1,18 @@
-#Frontend Framework
+# Frontend Framework
 Lightweight and robust ECMA6 frontend framework, architectured on MVC pattern and resting on webcomponents.
 
-##Getting Started
+## Getting Started
 
 [Download](https://github.com/ivanstan/framework-starterpack/archive/master.zip) frontend framework starter pack from here to start
 building great apps.
 
-##Installation
+## Installation
 Execute ```npm install``` to install required node packages, needed for development and building the application.
 
-##Build
+## Build
 Execute ```gulp build``` to fully build application.
 
-##Tutorial
+## Tutorial
 Visit [tutorial](http://dev.byteout.com/ivanstan/frontend-framework/#example/tutorial) section for more information.
 
 ## Testing
@@ -23,12 +23,12 @@ Framework relays on modern web technologies that are currently only supported in
 Framework will support more browsers in future as the browser vendors release their implementations
 that Framework relays on.
 
-##Use from CDN
+## Use from CDN
 <code class="url" style="width: 100%; padding: 0.5em; display: table;">
   https://cdn.rawgit.com/ivanstan/frontend-framework/master/build/frontend-framework-1.0.0.js
 </code>
 
-##MIT License
+## MIT License
 Copyright © 2016 Ivan Stanojevic
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

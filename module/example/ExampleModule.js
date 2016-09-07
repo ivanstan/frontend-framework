@@ -32,6 +32,8 @@ class ExampleModule extends Module {
 
     postRender(defer) {
 
+        $('.docrx').docrx();
+
         if (this.app.isDebug()) {
             console.log(this.constructor.name + ' postRender hook called');
         }

@@ -1,4 +1,4 @@
-##Philosophy
+## Philosophy
 
 Application resources "pages" are called states and are composed of view and controller. States are further grouped into
 modules.
@@ -25,7 +25,7 @@ graph LR;
     ConPreRender-->ModPostRender(Module postRender)
 </div>
 
-##Project structure
+## Project structure
 <table class="table">
     <tbody>
         <tr>
@@ -105,7 +105,7 @@ graph LR;
 </table>
 
 
-##Configuration
+## Configuration
 
 Application is intended to be configured in <span class="file">bootstrap.json</span> file. Bellow is the overview of configuration object:
 
@@ -164,7 +164,7 @@ Here is an example:
 
 ```
 
-##Creating module
+## Creating module
 User's modules reside inside the <span class="folder">module</span> folder and are organized module per folder.
 
 After creating module directory. It should be added into modules object of in <span class="file">bootstrap.json</span> file.
@@ -207,7 +207,7 @@ Handy place to
 initiate global jQuery components. Also module property settings will be packed with other module's settings
 into single object available trough application, particularly in controllers via <code>this.settings</code>
 
-##Creating state
+## Creating state
 
 Application states are created inside the module. Each state is conceptually similar to page in conventional
 web applications. States are consisted out of controller and view and architecture is based on MVC pattern.

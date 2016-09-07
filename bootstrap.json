@@ -26,18 +26,9 @@
         "stylesheet": ["http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.css"]
       },
       {
-        "name": "hightlight.js",
-        "javascript": ["http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/highlight.min.js"],
-        "stylesheet": ["http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/github.min.css"]
-      },
-      {
-        "name": "showdown.js",
-        "javascript": ["http://cdnjs.cloudflare.com/ajax/libs/showdown/1.4.1/showdown.min.js"]
-      },
-      {
-        "name": "marmaid.js",
-        "javascript": ["http://cdnjs.cloudflare.com/ajax/libs/mermaid/6.0.0/mermaid.min.js"],
-        "stylesheet": ["http://cdnjs.cloudflare.com/ajax/libs/mermaid/6.0.0/mermaid.min.css"]
+        "name": "docrx",
+        "javascript": ["vendor/docrx/build/docrx.min.js"],
+        "stylesheet": ["vendor/docrx/build/docrx.min.css"]
       },
       {
         "name": "framework",

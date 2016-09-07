@@ -3,7 +3,6 @@ class HomeController extends Controller {
     constructor(app) {
         super(app);
         this.app = app;
-        this.converter = new showdown.Converter();
 
         if (app.isDebug()) {
             console.log(this.constructor.name + ' constructor called');
@@ -20,20 +19,6 @@ class HomeController extends Controller {
     }
 
     postRender(defer) {
-        $('.showdown').each((i, block) => {
-            let element = $(block);
-
-            var url = element.data('url');
-            $.get(url, (data) => {
-                let markdown = this.converter.makeHtml(data);
-                element.html(markdown);
-
-                $('pre code').each((i, block) => {
-                    hljs.highlightBlock(block);
-                });
-            });
-
-        });
 
         if (this.app.isDebug()) {
             console.log(this.constructor.name + ' postRender called');
