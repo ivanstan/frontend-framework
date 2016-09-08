@@ -103,7 +103,7 @@ gulp.task('development', function () {
         .pipe(replace({
             patterns: [
                 {
-                    match: /{config}/g,
+                    match: /\{config\}/g,
                     replacement: function () {
                         var DI = config;
                         delete DI.build;
@@ -112,7 +112,7 @@ gulp.task('development', function () {
                     }
                 },
                 {
-                    match: /{javascript}/g,
+                    match: /\{javascript\}/g,
                     replacement: function () {
                         var result = '',
                             uri,
@@ -132,7 +132,7 @@ gulp.task('development', function () {
                     }
                 },
                 {
-                    match: /{stylesheet}/g,
+                    match: /\{stylesheet\}/g,
                     replacement: function () {
                         var result = '',
                             uri,
@@ -174,7 +174,7 @@ gulp.task('production', function () {
         .pipe(replace({
             patterns: [
                 {
-                    match: /{config}/g,
+                    match: /\{config\}/g,
                     replacement: function () {
                         var DI = config;
                         delete DI.libs;
@@ -183,7 +183,7 @@ gulp.task('production', function () {
                     }
                 },
                 {
-                    match: /{javascript}/g,
+                    match: /\{javascript\}/g,
                     replacement: function () {
                         var result = '',
                             uri,
@@ -203,7 +203,7 @@ gulp.task('production', function () {
                     }
                 },
                 {
-                    match: /{stylesheet}/g,
+                    match: /\{stylesheet\}/g,
                     replacement: function () {
                         var result = '',
                             uri,

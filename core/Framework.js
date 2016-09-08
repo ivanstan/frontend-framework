@@ -210,7 +210,7 @@ class Framework {
 
     loadView(href) {
         var defer = $.Deferred(),
-            link  = $(`head [href="${href}"]`);
+            link  = $(`head [href='${href}']`);
 
         // ToDo: Check if this if can be avoided
         if (link.length > 0) {
@@ -285,19 +285,42 @@ class Framework {
      */
     notification(type, message, title = null) {
 
-        // add this https://stackoverflow.com/questions/2271156/chrome-desktop-notification-example
+        if (!this.debug() && type === 'error') {
+            return void(0);
+        }
 
-        if (typeof window.toastr == 'object' && typeof window['toastr'][type] == 'function') {
+        if (typeof window.Notification != 'undefined' && Notification.permission !== 'denied') {
 
-            if (!this.isDebug() && type === 'error') {
-                return false;
+            if(Notification.permission === 'granted') {
+                let notification = new Notification(message);
+                return void(0);
             }
 
+            if (Notification.permission !== 'denied') {
+                Notification.requestPermission(function (permission) {
+
+                    // Whatever the user answers, we make sure we store the information
+                    if(!('permission' in Notification)) {
+                        Notification.permission = permission;
+                    }
+
+                    // If the user is okay, let's create a notification
+                    if (permission === 'granted') {
+                        let notification = new Notification(message);
+                    }
+                });
+                return void(0);
+            }
+
+        }
+
+        if (typeof window.toastr == 'object' && typeof window['toastr'][type] == 'function') {
             window['toastr'][type](message, title);
             return void(0);
         }
 
         console.log(message);
+
         return void(0);
     }
 
@@ -306,7 +329,7 @@ class Framework {
      *
      * @returns {Boolean}
      */
-    isDebug() {
+    debug() {
         return location.pathname.indexOf('index-dev.html') > 0;
     }
 
