@@ -4,7 +4,12 @@ Lightweight and robust ECMA6 frontend framework, architectured on MVC pattern an
 ## Getting Started
 
 [Download](https://github.com/ivanstan/framework-starterpack/archive/master.zip) frontend framework starter pack from here to start
-building great apps.
+building great apps or use git to do the same:
+
+```
+git clone --depth=1 https://github.com/ivanstan/framework-starterpack
+```
+
 
 ## Installation
 Execute ```npm install``` to install required node packages, needed for development and building the application.
@@ -23,7 +28,7 @@ Framework relays on modern web technologies that are currently only supported in
 Framework will support more browsers in future as the browser vendors release their implementations
 that Framework relays on.
 
-## Use from CDN
+## Load from CDN
 <code class="url" style="width: 100%; padding: 0.5em; display: table;">
   https://cdn.rawgit.com/ivanstan/frontend-framework/master/build/frontend-framework-1.0.0.js
 </code>

@@ -11,8 +11,7 @@ var fs = require('fs'),
     replace = require('gulp-replace-task'),
     packageJson = require('./package.json'),
     NodeFramework = require('./core/NodeFramework.js'),
-    jsdox = require("jsdox"),
-    gutil = require('gulp-util');
+    jsdox = require("jsdox");
 
 gulp.remote = require('gulp-remote-src');
 gulp.merge = require('merge2');
