@@ -154,8 +154,8 @@ class Module {
      *
      * @param {Framework} app   Framework instance.
      */
-    constructor(app) {
-
+    constructor(service) {
+        this.service = service;
     }
 
     /**
@@ -191,10 +191,11 @@ class Controller {
     /**
      * Class constructor.
      *
-     * @param {Framework} app   Framework instance.
+     * @param {Framework} service   Framework instance.
      */
-    constructor(app) {
+    constructor(service) {
         this._template = '';
+        this.service = service;
     }
 
     /**

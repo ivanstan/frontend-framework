@@ -10,6 +10,7 @@
 <script src="//cdnjs.cloudflare.com/ajax/libs/tether/1.3.2/js/tether.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/redux/3.6.0/redux.min.js"></script>
 <script src="vendor/docrx/build/docrx.min.js"></script>
+<script src="core/ServiceContainer.js"></script>
 <script src="core/Util.js"></script>
 <script src="core/Exception.js"></script>
 <script src="core/AjaxException.js"></script>
@@ -45,7 +46,7 @@
 <script>
     'use strict';
 
-    var App = new Framework({"modules":{"example":{"settings":{}}},"viewSelector":"#container"});
+    var App = new Framework({"modules":["example"],"settings":{},"routes":{"/":{"controller":"default","module":"default"}},"viewSelector":"#container"});
 </script>
 
 <a href="https://github.com/ivanstan/frontend-framework"><img

@@ -34,22 +34,32 @@ class Route {
             console.log('Routing map empty');
         }
 
-        let matched = this.map[this.uri] ? this.map[this.uri] : this.map['/'];
+        let matched = this.findRoute();
 
-        this.module = matched.module;
-        this.state = matched.state;
-        this.moduleFolder = `module/${this.module}`;
-        this.cssNamespace = `${matched.module}-${matched.state}-page`;
+        return this.createRoute(matched);
+    }
 
-        this.moduleClassName = Util.capitalize(matched.module) + 'Module';
-        this.controllerClassName = Util.capitalize(matched.state) + 'Controller';
+    createRoute(matched) {
+        matched.controllerClassName = false;
 
-        this.viewFileName = matched.state + 'View.html';
-        this.controllerFileName = matched.state + 'Controller.js';
+        if(typeof matched.controller != 'undefined') {
+            let path = Util.pathInfo(matched.controller);
 
-        this.viewFile = `${this.moduleFolder}/view/${this.viewFileName}`;
-        this.controllerFile = `${this.moduleFolder}/controller/${this.controllerFileName}`;
+            matched.controllerClassName = path.basename;
+            matched.controllerFile = matched.controller;
+        }
 
-        return this;
+        matched.cssNamespace = `${matched.module}-${matched.state}-page`;
+        matched.viewFile = matched.view;
+
+        return matched;
+    }
+
+    findRoute() {
+        if(Object.keys(this.map).length === 0) {
+            console.log('Routing map empty');
+        }
+
+        return this.map[this.uri] ? this.map[this.uri] : this.map['/'];
     }
 }

@@ -14,34 +14,31 @@ class Framework {
      */
     constructor(config) {
         window.classes = window.classes || {};
-        this.config    = config;
-        this.routes    = {
-            '/': {
-                controller: 'default',
-                module    : 'default'
-            }
-        };
-        this.route     = {};
-
         _current.set(this, {});
         _modules.set(this, {});
 
-        this.loadModules()
+        this.viewSelector = config.viewSelector;
+        this.service      = new ServiceContainer(config);
+
+        this.loadModules(config.modules)
             .done(() => {
                 this.store = Redux.createStore(() => {
-                    this.changeState();
+                    return this.changeState();
                 });
 
-                this.store.subscribe((a, s, d) => {
+                this.store.subscribe(() => {
                     let state = this.store.getState();
-                    let route =  new Route(window.location.hash, {}, this.routes);
-                    this.navigate(route);
+                    this.navigate(state.route);
                 });
 
                 $(window).on('hashchange', () => {
-                    this.store.dispatch({ type: 'INCREMENT' });
 
+                    let state = {
+                        type: 'change',
+                        path: window.location.hash
+                    };
 
+                    this.store.dispatch(state);
                 });
 
                 $(window).trigger('hashchange');
@@ -53,8 +50,10 @@ class Framework {
 
     changeState(state, action) {
         if (typeof state === 'undefined') {
-            return {};
+            var state = {};
         }
+
+        state.route = new Route(window.location.hash, {}, this.service.routes);
 
         return state;
     }
@@ -64,44 +63,35 @@ class Framework {
      *
      * @returns {*}
      */
-    loadModules() {
-        let defer        = $.Deferred(),
-            modules      = _modules.get(this),
-            moduleCount  = Object.keys(this.config.modules).length,
-            currentCount = 0;
+    loadModules(modules) {
+        let defer           = $.Deferred(),
+            moduleInstances = _modules.get(this);
 
-        for (let moduleName in this.config.modules) {
-            if (!this.config.modules.hasOwnProperty(moduleName)) continue;
-
-            let moduleClassName = `${Util.capitalize(moduleName)}Module`;
+        for (let i in modules) {
+            let moduleName      = modules[i],
+                moduleClassName = `${Util.capitalize(moduleName)}Module`;
 
             $.ajax({
                 url    : `module/${moduleName}/${moduleClassName}.js`,
                 success: (source, textStatus, jqXHR) => {
-                    if (jqXHR.status !== 200) {
-                        defer.reject(`Error loading: ${moduleClassName}`);
-                    }
-
                     let moduleClass = window.classes[moduleClassName];
                     if (typeof moduleClass === 'undefined') {
                         defer.reject(`Invalid module class: ${moduleClass}`);
                         return false;
                     }
 
-                    let module = new moduleClass(this);
-                    this.config['modules'][moduleName] = module.settings;
+                    let module                  = new moduleClass(this.service);
+                    moduleInstances[moduleName] = module;
+                    _modules.set(this, moduleInstances);
 
-                    if (typeof module.routes == 'object') {
-                        for (let i in module.routes) {
-                            module.routes[i]['module'] = moduleName;
-                        }
-                        this.routes = $.extend(this.routes, module.routes);
+                    for (let route in module.routes) {
+                        module.routes[route].module = moduleName;
                     }
 
-                    modules[moduleName] = module;
-                    _modules.set(this, modules);
+                    this.service.settings = $.extend(this.service.settings, module.settings);
+                    this.service.routes   = $.extend(this.service.routes, module.routes);
 
-                    if (currentCount == moduleCount) {
+                    if (i == modules.length - 1) {
                         defer.resolve();
                     }
                 },
@@ -109,7 +99,6 @@ class Framework {
                     defer.reject(textStatus);
                 }
             });
-            currentCount++;
         }
 
         return defer.promise();
@@ -139,10 +128,6 @@ class Framework {
             this.hook('preRender')
                 .always(() => {
                     this.loadController(route)
-                        .fail((errorText) => {
-                            this.notification('error', errorText);
-                            return null;
-                        })
                         .done((template) => {
                             let controllerClass = window.classes[route.controllerClassName];
 
@@ -150,7 +135,7 @@ class Framework {
                                 this.notification('error', `State controller missing ${route.controllerClassName}`);
                             }
 
-                            let controller = new controllerClass(this);
+                            let controller = new controllerClass(this.service);
 
                             controller.template = template;
                             controller.route    = route;
@@ -158,7 +143,7 @@ class Framework {
                             let preRenderDefer = new $.Deferred();
                             controller.preRender(preRenderDefer)
                                 .always(() => {
-                                    let view = $(this.config.viewSelector);
+                                    let view = $(this.viewSelector);
 
                                     view.html(controller.template);
                                     view.attr('class', route.cssNamespace);
@@ -173,9 +158,12 @@ class Framework {
                                         });
                                 });
 
-
                             return route;
-                        });
+                        })
+                        .fail((errorText) => {
+                            this.notification('error', errorText);
+                            return null;
+                        })
                 });
         });
     }
@@ -183,7 +171,7 @@ class Framework {
     loadController(route) {
         let defer = $.Deferred();
 
-        if (Util.isChrome()) {
+        if (this.service.isChrome) {
             this.loadView(route.viewFile)
                 .done((link) => {
 
@@ -213,6 +201,11 @@ class Framework {
                     case 'TEMPLATE':
                         templateHtml = element.innerHTML;
                         break;
+                    case 'SCRIPT':
+                        console.log(element);
+                        break;
+                    default:
+                        console.log(element);
                 }
             });
 
@@ -296,79 +289,6 @@ class Framework {
         this.notification('error', exception.getTitle(), exception.getMessage());
 
         console.log(exception);
-    }
-
-    /**
-     * Raise notification to user.
-     *
-     * @param {String} type      Possible values: 'error', 'warning', 'success', 'info'
-     * @param {String} title
-     * @param {String} message
-     */
-    notification(type, message, title = null) {
-
-        if (!this.debug() && type === 'error') {
-            return void(0);
-        }
-
-        if (typeof window.Notification != 'undefined' && Notification.permission !== 'denied') {
-
-            if (Notification.permission === 'granted') {
-                let notification = new Notification(message);
-                return void(0);
-            }
-
-            if (Notification.permission !== 'denied') {
-                Notification.requestPermission(function (permission) {
-
-                    // Whatever the user answers, we make sure we store the information
-                    if (!('permission' in Notification)) {
-                        Notification.permission = permission;
-                    }
-
-                    // If the user is okay, let's create a notification
-                    if (permission === 'granted') {
-                        let notification = new Notification(message);
-                    }
-                });
-                return void(0);
-            }
-
-        }
-
-        if (typeof window.toastr == 'object' && typeof window['toastr'][type] == 'function') {
-            window['toastr'][type](message, title);
-            return void(0);
-        }
-
-        console.log(message);
-
-        return void(0);
-    }
-
-    /**
-     * Returns true if application is in debug mode.
-     *
-     * @returns {Boolean}
-     */
-    debug() {
-        return location.pathname.indexOf('index-dev.html') > 0;
-    }
-
-    getPartial(url) {
-        let defer = $.Deferred();
-
-        $.ajax({
-            url    : url,
-            success: (data) => {
-                defer.resolve(data);
-            },
-            error  : () => {
-                defer.reject();
-            }
-        });
-
-        return defer.promise();
     }
 
 }

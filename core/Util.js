@@ -26,8 +26,17 @@ class Util {
         return template.html();
     }
 
-    static isChrome() {
-        return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    static pathInfo(path) {
+        let filename = path.replace(/^.*[\\\/]/, ''),
+            extension = filename.split('.').pop();
+
+        return {
+            path: path,
+            filename: filename,
+            extension: extension,
+            basename: filename.replace('.' + extension, ''),
+            dirname: path.replace(filename, '')
+        }
     }
 
 }

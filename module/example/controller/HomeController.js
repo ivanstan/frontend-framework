@@ -1,17 +1,16 @@
 class HomeController extends Controller {
 
-    constructor(app) {
-        super(app);
-        this.app = app;
+    constructor(service) {
+        super(service);
 
-        if (app.debug()) {
+        if (service.debug) {
             console.log(this.constructor.name + ' constructor called');
         }
     }
 
     preRender(defer) {
 
-        if (this.app.debug()) {
+        if (this.service.debug) {
             console.log(this.constructor.name + ' preRender called');
         }
 
@@ -20,7 +19,7 @@ class HomeController extends Controller {
 
     postRender(defer) {
 
-        if (this.app.debug()) {
+        if (this.service.debug) {
             console.log(this.constructor.name + ' postRender called');
         }
 
@@ -29,7 +28,7 @@ class HomeController extends Controller {
 
     destructor(defer) {
 
-        if (this.app.debug()) {
+        if (this.service.debug) {
             console.log(this.constructor.name + ' destructor called');
         }
 
