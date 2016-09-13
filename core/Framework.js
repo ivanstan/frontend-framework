@@ -28,16 +28,36 @@ class Framework {
 
         this.loadModules()
             .done(() => {
+                this.store = Redux.createStore(() => {
+                    this.changeState();
+                });
+
+                this.store.subscribe((a, s, d) => {
+                    let state = this.store.getState();
+                    let route =  new Route(window.location.hash, {}, this.routes);
+                    this.navigate(route);
+                });
+
+                $(window).on('hashchange', () => {
+                    this.store.dispatch({ type: 'INCREMENT' });
+
+
+                });
+
                 $(window).trigger('hashchange');
             })
             .fail((message) => {
                 this.notification('error', message);
             });
-
-        $(window).on('hashchange', () => {
-            this.navigate(new Route(window.location.hash, {}, this.routes));
-        });
     };
+
+    changeState(state, action) {
+        if (typeof state === 'undefined') {
+            return {};
+        }
+
+        return state;
+    }
 
     /**
      * Performs loading of modules.
@@ -45,16 +65,15 @@ class Framework {
      * @returns {*}
      */
     loadModules() {
-        var defer   = $.Deferred();
-        var modules = _modules.get(this);
+        let defer        = $.Deferred(),
+            modules      = _modules.get(this),
+            moduleCount  = Object.keys(this.config.modules).length,
+            currentCount = 0;
 
-        var moduleCount  = Object.keys(this.config.modules).length;
-        var currentCount = 0;
-
-        for (var moduleName in this.config.modules) {
+        for (let moduleName in this.config.modules) {
             if (!this.config.modules.hasOwnProperty(moduleName)) continue;
 
-            var moduleClassName = `${Util.capitalize(moduleName)}Module`;
+            let moduleClassName = `${Util.capitalize(moduleName)}Module`;
 
             $.ajax({
                 url    : `module/${moduleName}/${moduleClassName}.js`,
@@ -63,17 +82,17 @@ class Framework {
                         defer.reject(`Error loading: ${moduleClassName}`);
                     }
 
-                    var moduleClass = window.classes[moduleClassName];
+                    let moduleClass = window.classes[moduleClassName];
                     if (typeof moduleClass === 'undefined') {
                         defer.reject(`Invalid module class: ${moduleClass}`);
                         return false;
                     }
 
-                    var module                         = new moduleClass(this);
+                    let module = new moduleClass(this);
                     this.config['modules'][moduleName] = module.settings;
 
                     if (typeof module.routes == 'object') {
-                        for (var i in module.routes) {
+                        for (let i in module.routes) {
                             module.routes[i]['module'] = moduleName;
                         }
                         this.routes = $.extend(this.routes, module.routes);
@@ -102,12 +121,11 @@ class Framework {
      * @param {Route} route
      */
     navigate(route) {
-
         this.route  = route;
-        var current = _current.get(this);
+        let current = _current.get(this);
 
         // call resign of previous controller
-        var destructorDefer = $.Deferred(),
+        let destructorDefer = $.Deferred(),
             destructorPromise;
 
         if (typeof current.destructor === 'function') {
@@ -132,12 +150,12 @@ class Framework {
                                 this.notification('error', `State controller missing ${route.controllerClassName}`);
                             }
 
-                            var controller = new controllerClass(this);
+                            let controller = new controllerClass(this);
 
                             controller.template = template;
                             controller.route    = route;
 
-                            var preRenderDefer = new $.Deferred();
+                            let preRenderDefer = new $.Deferred();
                             controller.preRender(preRenderDefer)
                                 .always(() => {
                                     let view = $(this.config.viewSelector);
@@ -145,7 +163,7 @@ class Framework {
                                     view.html(controller.template);
                                     view.attr('class', route.cssNamespace);
 
-                                    var postRenderDefer = new $.Deferred();
+                                    let postRenderDefer = new $.Deferred();
                                     controller.postRender(postRenderDefer)
                                         .always(() => {
                                             _current.set(this, controller);
@@ -163,40 +181,42 @@ class Framework {
     }
 
     loadController(route) {
-        var defer = $.Deferred();
+        let defer = $.Deferred();
 
         if (Util.isChrome()) {
             this.loadView(route.viewFile)
                 .done((link) => {
 
                     if (typeof link[0].import != 'undefined') {
-                        var template = Util.link2html(link);
+                        let template = Util.link2html(link);
 
                         if (template == false) {
                             return defer.reject(`File ${route.viewFile} is not template`).promise();
                         }
 
-                        return defer.resolve(template).promise();
+                        return defer.resolve(template);
                     }
                 })
                 .fail(() => {
                     defer.reject(`Error loading ${route.viewFile}`);
                 });
+
+            return defer.promise();
         }
 
         // Polyfile for browser that partialy support html imports
         $.get(route.viewFile, (template) => {
-            var templateHtml = '';
+            let templateHtml = '';
 
             $($(template)).each((index, element) => {
-                switch(element.tagName) {
+                switch (element.tagName) {
                     case 'TEMPLATE':
                         templateHtml = element.innerHTML;
                         break;
                 }
             });
 
-            if(typeof window.classes[route.controllerClassName] != 'undefined') {
+            if (typeof window.classes[route.controllerClassName] != 'undefined') {
                 return defer.resolve(templateHtml).promise();
             }
 
@@ -209,8 +229,8 @@ class Framework {
     }
 
     loadView(href) {
-        var defer = $.Deferred(),
-            link  = $(`head [href="${href}"]`);
+        let defer = $.Deferred(),
+            link  = $(`head [href='${href}']`);
 
         // ToDo: Check if this if can be avoided
         if (link.length > 0) {
@@ -235,7 +255,9 @@ class Framework {
             defer.reject(event);
         };
 
-        $('head').append($(link));
+        setTimeout(() => {
+            $('head').append($(link));
+        }, 0);
 
         return defer.promise();
     }
@@ -246,14 +268,14 @@ class Framework {
      * @param {String} hookName
      */
     hook(hookName) {
-        var deferredArray = [],
+        let deferredArray = [],
             modules       = _modules.get(this);
 
         for (let i in modules) {
             if (!modules.hasOwnProperty(i)) continue;
 
             let module = modules[i];
-            var defer  = $.Deferred();
+            let defer  = $.Deferred();
             deferredArray.push(defer);
 
             if (typeof module[hookName] === 'function') {
@@ -285,19 +307,42 @@ class Framework {
      */
     notification(type, message, title = null) {
 
-        // add this https://stackoverflow.com/questions/2271156/chrome-desktop-notification-example
+        if (!this.debug() && type === 'error') {
+            return void(0);
+        }
 
-        if (typeof window.toastr == 'object' && typeof window['toastr'][type] == 'function') {
+        if (typeof window.Notification != 'undefined' && Notification.permission !== 'denied') {
 
-            if (!this.isDebug() && type === 'error') {
-                return false;
+            if (Notification.permission === 'granted') {
+                let notification = new Notification(message);
+                return void(0);
             }
 
+            if (Notification.permission !== 'denied') {
+                Notification.requestPermission(function (permission) {
+
+                    // Whatever the user answers, we make sure we store the information
+                    if (!('permission' in Notification)) {
+                        Notification.permission = permission;
+                    }
+
+                    // If the user is okay, let's create a notification
+                    if (permission === 'granted') {
+                        let notification = new Notification(message);
+                    }
+                });
+                return void(0);
+            }
+
+        }
+
+        if (typeof window.toastr == 'object' && typeof window['toastr'][type] == 'function') {
             window['toastr'][type](message, title);
             return void(0);
         }
 
         console.log(message);
+
         return void(0);
     }
 
@@ -306,19 +351,19 @@ class Framework {
      *
      * @returns {Boolean}
      */
-    isDebug() {
+    debug() {
         return location.pathname.indexOf('index-dev.html') > 0;
     }
 
     getPartial(url) {
-        var defer = $.Deferred();
+        let defer = $.Deferred();
 
         $.ajax({
             url    : url,
-            success: function (data) {
+            success: (data) => {
                 defer.resolve(data);
             },
-            error  : function () {
+            error  : () => {
                 defer.reject();
             }
         });

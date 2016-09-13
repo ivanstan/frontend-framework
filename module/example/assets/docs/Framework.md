@@ -52,7 +52,7 @@ Raise notification to user.
 **message**: `String`, Raise notification to user.
 
 
-### Framework.isDebug() 
+### Framework.debug() 
 
 Returns true if application is in debug mode.
 
