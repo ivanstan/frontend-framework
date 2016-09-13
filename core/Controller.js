@@ -3,7 +3,7 @@
  *
  * All controllers shall extend this Controller class.
  */
-class Controller {
+class Controller extends Abstract {
 
     /**
      * Class constructor.
@@ -11,6 +11,7 @@ class Controller {
      * @param {Framework} app   Framework instance.
      */
     constructor(service) {
+        super();
         this.service = service;
         this._template = '';
     }

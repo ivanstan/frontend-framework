@@ -33,12 +33,12 @@ class Framework {
 
                 $(window).on('hashchange', () => {
 
-                    let state = {
-                        type: 'change',
+                    let action = {
+                        type: 'navigate',
                         path: window.location.hash
                     };
 
-                    this.store.dispatch(state);
+                    this.store.dispatch(action);
                 });
 
                 $(window).trigger('hashchange');
@@ -51,9 +51,14 @@ class Framework {
     changeState(state, action) {
         if (typeof state === 'undefined') {
             var state = {};
+            state.route = new Route(window.location.hash, {}, this.service.routes);
         }
 
-        state.route = new Route(window.location.hash, {}, this.service.routes);
+        switch(action) {
+            case 'navigate':
+
+                break;
+        }
 
         return state;
     }

@@ -1,0 +1,7 @@
+class ReduxService {
+
+    constructor(service) {
+
+    }
+
+}

@@ -3,7 +3,7 @@
  *
  * All modules shall extend this Module class.
  */
-class Module {
+class Module extends Abstract {
 
     /**
      * Class Constructor.
@@ -11,6 +11,7 @@ class Module {
      * @param {Framework} app   Framework instance.
      */
     constructor(service) {
+        super();
         this.service = service;
     }
 

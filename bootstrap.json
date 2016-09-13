@@ -40,6 +40,7 @@
       {
         "name": "framework",
         "javascript": [
+          "core/Abstract.js",
           "core/ServiceContainer.js",
           "core/Util.js",
           "core/Exception.js",
@@ -47,7 +48,8 @@
           "core/Module.js",
           "core/Controller.js",
           "core/Route.js",
-          "core/Storage.js",
+          "core/service/StorageService.js",
+          "core/service/ReduxService.js",
           "core/Framework.js"
         ]
       },
