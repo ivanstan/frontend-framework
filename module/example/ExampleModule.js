@@ -15,7 +15,7 @@ class ExampleModule extends Module {
             }
         };
 
-        if (app.isDebug()) {
+        if (app.debug()) {
             console.log(this.constructor.name + ' constructor called');
         }
 
@@ -23,7 +23,7 @@ class ExampleModule extends Module {
 
     preRender(defer) {
 
-        if (this.app.isDebug()) {
+        if (this.app.debug()) {
             console.log(this.constructor.name + ' preRender hook called');
         }
 
@@ -34,7 +34,7 @@ class ExampleModule extends Module {
 
         $('.docrx').docrx();
 
-        if (this.app.isDebug()) {
+        if (this.app.debug()) {
             console.log(this.constructor.name + ' postRender hook called');
         }
 
