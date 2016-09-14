@@ -19,26 +19,16 @@ class Framework {
 
         this.viewSelector = config.viewSelector;
         this.service      = new ServiceContainer(config);
+        let redux = this.service.getService('redux');
 
         this.loadModules(config.modules)
             .done(() => {
-                this.store = Redux.createStore(() => {
-                    return this.changeState();
-                });
-
-                this.store.subscribe(() => {
-                    let state = this.store.getState();
-                    this.navigate(state.route);
-                });
-
                 $(window).on('hashchange', () => {
-
                     let action = {
                         type: 'navigate',
                         path: window.location.hash
                     };
-
-                    this.store.dispatch(action);
+                    redux.store.dispatch(action);
                 });
 
                 $(window).trigger('hashchange');
@@ -47,21 +37,6 @@ class Framework {
                 this.notification('error', message);
             });
     };
-
-    changeState(state, action) {
-        if (typeof state === 'undefined') {
-            var state = {};
-            state.route = new Route(window.location.hash, {}, this.service.routes);
-        }
-
-        switch(action) {
-            case 'navigate':
-
-                break;
-        }
-
-        return state;
-    }
 
     /**
      * Performs loading of modules.
