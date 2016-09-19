@@ -14,6 +14,10 @@ class ExampleModule extends Module {
             'example/docs': {
                 "controller": "module/example/controller/DocsController.js",
                 "view"    : "module/example/view/docs-view.html"
+            },
+            'example/docs/services': {
+                "controller": "module/example/controller/DocsServicesController.js",
+                "view"    : "module/example/view/docs-services-view.html"
             }
         };
 

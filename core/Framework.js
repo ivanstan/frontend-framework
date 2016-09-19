@@ -164,7 +164,7 @@ class Framework {
                 console.log(event);
             }
 
-            this.notification('error', `Unable to load: ${href}`);
+            this.service.notification.error(`Unable to load: ${href}`);
             defer.reject(event);
         };
 

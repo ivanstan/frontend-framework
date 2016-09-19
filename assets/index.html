@@ -9,16 +9,28 @@
     {stylesheet}
 </head>
 <body>
+
 <header class="container">
     <div class="row">
-        <nav class="navbar navbar-dark bg-inverse m-y">
-            <div class="nav navbar-nav">
-                <a class="navbar-brand" href="#">Frontend Framework</a>
-                <a class="nav-item nav-link" href="#example/home">Home</a>
-                <a class="nav-item nav-link" href="#example/tutorial">Tutorial</a>
-                <a class="nav-item nav-link" href="#example/docs">Documentation</a>
-            </div>
+        <nav class="navbar navbar-dark bg-primary m-y">
+            <ul class="nav navbar-nav">
+                <li><a class="navbar-brand" href="#">Frontend Framework</a></li>
+                <li class="nav-item ">
+                    <a class="nav-link waves-effect waves-light" href="#example/home">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link waves-effect waves-light" href="#example/tutorial">Tutorial</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle waves-effect waves-light" type="button" id="dropdown-docs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Documentation</a>
+                    <div class="dropdown-menu dropdown-primary" aria-labelledby="dropdown-docs" data-dropdown-in="fadeIn" data-dropdown-out="fadeOut">
+                        <a class="dropdown-item waves-effect waves-light" href="#example/docs">API</a>
+                        <a class="dropdown-item waves-effect waves-light" href="#example/docs/services">Services</a>
+                    </div>
+                </li>
+            </ul>
         </nav>
+
     </div>
 </header>
 
