@@ -4,7 +4,6 @@
  * @param {String} name Save under this name.
  * @param {String} value Value to be saved.
  */
-
 class StorageService {
 
     setItem(name, value) {
@@ -52,4 +51,3 @@ class StorageService {
         return value;
     };
 }
-

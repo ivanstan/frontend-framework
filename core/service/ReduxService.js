@@ -1,7 +1,7 @@
 class ReduxService {
 
-    constructor(routes) {
-        this.routes = routes;
+    constructor(service) {
+        this.routing = service.getService('routing');
 
         this.store = Redux.createStore(() => {
             return this.changeState();
@@ -9,7 +9,10 @@ class ReduxService {
 
         this.store.subscribe(() => {
             let state = this.store.getState();
-            App.navigate(state.route);
+
+            console.log(this.routing, state.route);
+
+            this.routing.navigate(state.route);
         });
 
     }
@@ -17,11 +20,15 @@ class ReduxService {
     changeState(state, action) {
         if (typeof state === 'undefined') {
             var state = {};
-            state.route = new Route(window.location.hash, {}, this.routes);
+            state.route = this.routing.find(window.location.hash);
         }
 
         switch(action) {
             case 'navigate':
+
+                //ToDo: dead code
+
+                console.log(state, action);
 
                 break;
         }

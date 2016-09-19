@@ -3,7 +3,6 @@
  *
  */
 let _current = new WeakMap();
-let _modules = new WeakMap();
 
 class Framework {
 
@@ -21,6 +20,21 @@ class Framework {
         this.service      = new ServiceContainer(config);
         let redux = this.service.getService('redux');
 
+        //this.service.module.loadModules().done(() => {
+        //        $(window).on('hashchange', () => {
+        //            let action = {
+        //                type: 'navigate',
+        //                path: window.location.hash
+        //            };
+        //            redux.store.dispatch(action);
+        //        });
+        //
+        //        $(window).trigger('hashchange');
+        //    })
+        //    .fail((message) => {
+        //        this.notification('error', message);
+        //    });
+
         this.loadModules(config.modules)
             .done(() => {
                 $(window).on('hashchange', () => {
@@ -34,7 +48,7 @@ class Framework {
                 $(window).trigger('hashchange');
             })
             .fail((message) => {
-                this.notification('error', message);
+                this.service.notification.error(message);
             });
     };
 
@@ -90,7 +104,6 @@ class Framework {
      * @param {Route} route
      */
     navigate(route) {
-        this.route  = route;
         let current = _current.get(this);
 
         // call resign of previous controller
@@ -123,9 +136,10 @@ class Framework {
                             let preRenderDefer = new $.Deferred();
                             controller.preRender(preRenderDefer)
                                 .always(() => {
-                                    let view = $(this.viewSelector);
+                                    let view = $(this.viewSelector),
+                                        filter = this.service.getService('filter');
 
-                                    view.html(controller.template);
+                                    view.html(filter.escapeImports(controller.template));
                                     view.attr('class', route.cssNamespace);
 
                                     let postRenderDefer = new $.Deferred();
@@ -269,6 +283,12 @@ class Framework {
         this.notification('error', exception.getTitle(), exception.getMessage());
 
         console.log(exception);
+    }
+
+    notification(type, message, title) {
+        let notification = this.service.getService('notification');
+
+        notification.notification(type, message, title);
     }
 
 }

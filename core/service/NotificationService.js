@@ -7,7 +7,7 @@ class NotificationService {
      * @param {String} title
      * @param {String} message
      */
-    notification(type, message, title = null) {
+    notify(type, message, title = null) {
 
         if (!this.debug && type === 'error') {
             return void(0);
@@ -46,6 +46,22 @@ class NotificationService {
         console.log(message);
 
         return void(0);
+    }
+
+    info(message, title = null) {
+        this.notify('info', message, title);
+    }
+
+    success(message, title = null) {
+        this.notify('success', message, title);
+    }
+
+    warning(message, title = null) {
+        this.notify('warning', message, title);
+    }
+
+    error(message, title = null) {
+        this.notify('error', message, title);
     }
 
 }

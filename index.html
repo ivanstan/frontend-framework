@@ -6,15 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="data:image/x-icon" type="image/x-icon">
     <script src="build/javascript.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.1.1/js/mdb.min.js"></script>
 
     <link rel="stylesheet" type="text/css" href="build/stylesheet.css">
+<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/css/bootstrap.css">
 <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.css">
+<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.1.1/css/mdb.min.css">
 
 </head>
 <body>
 <header class="container">
     <div class="row">
-        <nav class="navbar navbar-dark bg-inverse">
+        <nav class="navbar navbar-dark bg-inverse m-y">
             <div class="nav navbar-nav">
                 <a class="navbar-brand" href="#">Frontend Framework</a>
                 <a class="nav-item nav-link" href="#example/home">Home</a>
@@ -32,7 +36,7 @@
 <script>
     'use strict';
 
-    var App = new Framework({"modules":{"example":{"settings":{}}},"viewSelector":"#container","build":{"libs":[]}});
+    var App = new Framework({"modules":["example"],"settings":{},"routes":{"/":{"controller":"module/example/controller/HomeController.js","view":"module/example/view/home-view.html"}},"viewSelector":"#container"});
 </script>
 
 <a href="https://github.com/ivanstan/frontend-framework"><img

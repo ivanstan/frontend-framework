@@ -20,8 +20,15 @@
       },
       {
         "name": "bootstrap-4",
+        "package": false,
         "javascript": ["http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/js/bootstrap.min.js"],
         "stylesheet": ["http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/css/bootstrap.css"]
+      },
+      {
+        "name": "bootstrap-material",
+        "package": false,
+        "javascript": ["http://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.1.1/js/mdb.min.js"],
+        "stylesheet": ["http://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.1.1/css/mdb.min.css"]
       },
       {
         "name": "font-awesome",
@@ -29,13 +36,13 @@
         "stylesheet": ["http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.css"]
       },
       {
+        "name": "redux",
+        "javascript": ["http://cdnjs.cloudflare.com/ajax/libs/redux/3.6.0/redux.min.js"]
+      },
+      {
         "name": "docrx",
         "javascript": ["vendor/docrx/build/docrx.min.js"],
         "stylesheet": ["vendor/docrx/build/docrx.min.css"]
-      },
-      {
-        "name": "redux",
-        "javascript": ["https://cdnjs.cloudflare.com/ajax/libs/redux/3.6.0/redux.min.js"]
       },
       {
         "name": "framework",
@@ -48,8 +55,12 @@
           "core/Module.js",
           "core/Controller.js",
           "core/Route.js",
+          "core/service/NotificationService.js",
           "core/service/StorageService.js",
           "core/service/ReduxService.js",
+          "core/service/FilterService.js",
+          "core/service/RoutingService.js",
+          "core/service/ModuleService.js",
           "core/Framework.js"
         ]
       },

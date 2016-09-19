@@ -219,9 +219,6 @@ Here is example of such file:
 
     <!-- This is example of our example/view/fooView.html -->
 
-    <!-- Line bellow will include our foo state controller located in example module (example/controller/FooController.js) -->
-    <script src="../controller/FooController.js"></script>
-
     <template>
           <!-- Here should go contents of our state which will be inserted in element defined in viewSelector -->
     </template>

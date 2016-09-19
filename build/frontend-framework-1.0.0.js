@@ -1,3 +1,63 @@
+class Abstract {
+
+    constructor() {
+
+        if (new.target === Abstract) {
+            throw new TypeError("Cannot construct Abstract instances directly.");
+        }
+
+    }
+
+}
+class ServiceContainer {
+
+    constructor(config) {
+        this.settings = config.settings;
+        this.notification = new NotificationService(this);
+        this.routing = new RoutingService(this);
+        this.storage = new StorageService(this);
+        this.redux = new ReduxService(this);
+        this.filter = new FilterService(this);
+    }
+
+    getService(service) {
+        return (typeof this[service] == 'undefined') ? false : this[service];
+    }
+
+    setService(name, service) {
+        this[name] = service;
+    }
+
+    /**
+     * Returns true if application is in debug mode.
+     *
+     * @returns {Boolean}
+     */
+    get debug() {
+        return location.pathname.indexOf('index-dev.html') > 0;
+    }
+
+    get isChrome() {
+        return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    }
+
+    getPartial(url) {
+        let defer = $.Deferred();
+
+        $.ajax({
+            url    : url,
+            success: (data) => {
+                defer.resolve(data);
+            },
+            error  : () => {
+                defer.reject();
+            }
+        });
+
+        return defer.promise();
+    }
+
+}
 class Util {
 
     /**
@@ -26,8 +86,17 @@ class Util {
         return template.html();
     }
 
-    static isChrome() {
-        return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    static pathInfo(path) {
+        let filename = path.replace(/^.*[\\\/]/, ''),
+            extension = filename.split('.').pop();
+
+        return {
+            path: path,
+            filename: filename,
+            extension: extension,
+            basename: filename.replace('.' + extension, ''),
+            dirname: path.replace(filename, '')
+        }
     }
 
 }
@@ -147,7 +216,7 @@ class AjaxException extends Exception {
  *
  * All modules shall extend this Module class.
  */
-class Module {
+class Module extends Abstract {
 
     /**
      * Class Constructor.
@@ -155,6 +224,7 @@ class Module {
      * @param {Framework} app   Framework instance.
      */
     constructor(service) {
+        super();
         this.service = service;
     }
 
@@ -186,16 +256,17 @@ class Module {
  *
  * All controllers shall extend this Controller class.
  */
-class Controller {
+class Controller extends Abstract {
 
     /**
      * Class constructor.
      *
-     * @param {Framework} service   Framework instance.
+     * @param {Framework} app   Framework instance.
      */
     constructor(service) {
-        this._template = '';
+        super();
         this.service = service;
+        this._template = '';
     }
 
     /**
@@ -255,23 +326,22 @@ class Route {
     /**
      * Constructor. Parses the route string to object.
      *
-     * @param uri
+     * @param this.uri
      * @param params
      * @param map
      * @returns {Route}
      */
-    constructor(uri, params, map) {
-        this.map = map;
-        this.params = params ? params : {};
+    constructor(uri) {
         this.uri = uri.indexOf('#') === 0 ? uri.substring(1) : uri;
+        this.params = [];
 
-        if(uri.lastIndexOf('#') > 0) {
+        if(this.uri.lastIndexOf('#') > 0) {
             this.hash = this.uri.substring(this.uri.lastIndexOf('#') + 1, this.uri.length);
             this.uri = this.uri.substring(0, this.uri.lastIndexOf('#'));
         }
 
         if(this.uri.indexOf('?') > -1) {
-            let tmpParams = this.uri.substr(uri.indexOf('?'), this.uri.length);
+            let tmpParams = this.uri.substr(this.uri.indexOf('?'), this.uri.length);
             this.uri = this.uri.substr(0, this.uri.indexOf('?'));
 
             tmpParams = tmpParams.split('&');
@@ -281,29 +351,75 @@ class Route {
                 this.params[nv[0]] = nv[1] || true;
             }
         }
+    }
 
-        if(Object.keys(this.map).length === 0) {
-            console.log('Routing map empty');
+}
+class NotificationService {
+
+    /**
+     * Raise notification to user.
+     *
+     * @param {String} type      Possible values: 'error', 'warning', 'success', 'info'
+     * @param {String} title
+     * @param {String} message
+     */
+    notify(type, message, title = null) {
+
+        if (!this.debug && type === 'error') {
+            return void(0);
         }
 
-        let matched = this.map[this.uri] ? this.map[this.uri] : this.map['/'];
+        if (typeof window.Notification != 'undefined' && Notification.permission !== 'denied') {
 
-        this.module = matched.module;
-        this.state = matched.state;
-        this.moduleFolder = `module/${this.module}`;
-        this.cssNamespace = `${matched.module}-${matched.state}-page`;
+            if (Notification.permission === 'granted') {
+                let notification = new Notification(message);
+                return void(0);
+            }
 
-        this.moduleClassName = Util.capitalize(matched.module) + 'Module';
-        this.controllerClassName = Util.capitalize(matched.state) + 'Controller';
+            if (Notification.permission !== 'denied') {
+                Notification.requestPermission(function (permission) {
 
-        this.viewFileName = matched.state + 'View.html';
-        this.controllerFileName = matched.state + 'Controller.js';
+                    // Whatever the user answers, we make sure we store the information
+                    if (!('permission' in Notification)) {
+                        Notification.permission = permission;
+                    }
 
-        this.viewFile = `${this.moduleFolder}/view/${this.viewFileName}`;
-        this.controllerFile = `${this.moduleFolder}/controller/${this.controllerFileName}`;
+                    // If the user is okay, let's create a notification
+                    if (permission === 'granted') {
+                        let notification = new Notification(message);
+                    }
+                });
+                return void(0);
+            }
 
-        return this;
+        }
+
+        if (typeof window.toastr == 'object' && typeof window['toastr'][type] == 'function') {
+            window['toastr'][type](message, title);
+            return void(0);
+        }
+
+        console.log(message);
+
+        return void(0);
     }
+
+    info(message, title = null) {
+        this.notify('info', message, title);
+    }
+
+    success(message, title = null) {
+        this.notify('success', message, title);
+    }
+
+    warning(message, title = null) {
+        this.notify('warning', message, title);
+    }
+
+    error(message, title = null) {
+        this.notify('error', message, title);
+    }
+
 }
 /**
  * Sets the String type item to local storage.
@@ -311,51 +427,152 @@ class Route {
  * @param {String} name Save under this name.
  * @param {String} value Value to be saved.
  */
-Storage.setItem = function(name, value) {
-    window.localStorage.setItem(name, value);
-};
+class StorageService {
 
-/**
- * Get String type item from local storage.
- *
- * @param {String} name Name of item to fetch.
- * @param {String} def Default value to use if the item doesn't exist.
- * @returns {String}
- */
-Storage.getItem = function(name, def) {
-    var value = window.localStorage.getItem(name);
-    return value == null ? def : value;
-};
+    setItem(name, value) {
+        window.localStorage.setItem(name, value);
+    };
 
-/**
- * Set object data type in local storage
- *
- * @param {String} name Save under this name.
- * @param {Object} value Object to be saved.
- */
-Storage.setObject = function(name, value) {
-    Storage.setItem(name, JSON.stringify(value));
-};
+    /**
+     * Get String type item from local storage.
+     *
+     * @param {String} name Name of item to fetch.
+     * @param {String} def Default value to use if the item doesn't exist.
+     * @returns {String}
+     */
+    getItem(name, def) {
+        var value = window.localStorage.getItem(name);
+        return value == null ? def : value;
+    };
 
-/**
- * Get Object data type item from local storage.
- *
- * @param {String} name Name of item to fetch.
- * @param {String} def Default value to use if the item doesn't exist.
- * @returns {String}
- */
-Storage.getObject = function(name, def) {
-    var value;
+    /**
+     * Set object data type in local storage
+     *
+     * @param {String} name Save under this name.
+     * @param {Object} value Object to be saved.
+     */
+    setObject(name, value) {
+        Storage.setItem(name, JSON.stringify(value));
+    };
 
-    try {
-        value = JSON.parse(Storage.getItem(name, def));
-    } catch (exception) {
-        value = def;
+    /**
+     * Get Object data type item from local storage.
+     *
+     * @param {String} name Name of item to fetch.
+     * @param {String} def Default value to use if the item doesn't exist.
+     * @returns {String}
+     */
+    getObject(name, def) {
+        var value;
+
+        try {
+            value = JSON.parse(Storage.getItem(name, def));
+        } catch (exception) {
+            value = def;
+        }
+
+        return value;
+    };
+}
+class ReduxService {
+
+    constructor(service) {
+        this.routing = service.getService('routing');
+
+        this.store = Redux.createStore(() => {
+            return this.changeState();
+        });
+
+        this.store.subscribe(() => {
+            let state = this.store.getState();
+
+            this.routing.navigate(state.route);
+        });
+
     }
 
-    return value;
-};
+    changeState(state, action) {
+        if (typeof state === 'undefined') {
+            var state = {};
+            state.route = this.routing.find(window.location.hash);
+        }
 
+        switch(action) {
+            case 'navigate':
+
+                //ToDo: dead code
+
+                console.log(state, action);
+
+                break;
+        }
+
+        return state;
+    }
+
+}
+class FilterService {
+
+    escapeImports(text) {
+        return text;
+    }
+
+}
+class RoutingService {
+
+    constructor(service) {
+        this.routes = service.routes;
+
+        if(Object.keys(this.routes).length === 0) {
+            service.notification.info('Routing map empty');
+        }
+    }
+
+    find(uri) {
+        let route = new Route(uri),
+            matched = this.routes[route.uri] ? this.routes[route.uri] : this.routes['/'];
+
+        route.controller = matched.controller;
+        route.module = matched.module;
+        route.view = matched.view;
+
+        return this.processRoute(route);
+    }
+
+    processRoute(matched) {
+        matched.controllerClassName = false;
+
+        if(typeof matched.controller != 'undefined') {
+            let path = Util.pathInfo(matched.controller);
+
+            matched.controllerClassName = path.basename;
+            matched.controllerFile = matched.controller;
+
+            var state = matched.controllerClassName.toLowerCase().replace('controller', '');
+        }
+
+        matched.cssNamespace = `${matched.module}-${state}-page`;
+        matched.viewFile = matched.view;
+
+        return matched;
+    }
+
+    navigate(route) {
+        if(typeof route == 'string') {
+            route = this.find(route);
+        }
+
+        App.navigate(route);
+    }
+
+}
+class ModuleService {
+
+    constructor(service) {
+
+    }
+
+}
 /**
  *
  *
@@ -372,29 +589,28 @@ class Framework {
      */
     constructor(config) {
         window.classes = window.classes || {};
-        this.config    = config;
-        this.routes    = {
-            '/': {
-                controller: 'default',
-                module    : 'default'
-            }
-        };
-        this.route     = {};
-
         _current.set(this, {});
         _modules.set(this, {});
 
-        this.loadModules()
+        this.viewSelector = config.viewSelector;
+        this.service      = new ServiceContainer(config);
+        let redux = this.service.getService('redux');
+
+        this.loadModules(config.modules)
             .done(() => {
+                $(window).on('hashchange', () => {
+                    let action = {
+                        type: 'navigate',
+                        path: window.location.hash
+                    };
+                    redux.store.dispatch(action);
+                });
+
                 $(window).trigger('hashchange');
             })
             .fail((message) => {
                 this.notification('error', message);
             });
-
-        $(window).on('hashchange', () => {
-            this.navigate(new Route(window.location.hash, {}, this.routes));
-        });
     };
 
     /**
@@ -402,45 +618,35 @@ class Framework {
      *
      * @returns {*}
      */
-    loadModules() {
-        var defer   = $.Deferred();
-        var modules = _modules.get(this);
+    loadModules(modules) {
+        let defer           = $.Deferred(),
+            moduleInstances = _modules.get(this);
 
-        var moduleCount  = Object.keys(this.config.modules).length;
-        var currentCount = 0;
-
-        for (var moduleName in this.config.modules) {
-            if (!this.config.modules.hasOwnProperty(moduleName)) continue;
-
-            var moduleClassName = `${Util.capitalize(moduleName)}Module`;
+        for (let i in modules) {
+            let moduleName      = modules[i],
+                moduleClassName = `${Util.capitalize(moduleName)}Module`;
 
             $.ajax({
                 url    : `module/${moduleName}/${moduleClassName}.js`,
                 success: (source, textStatus, jqXHR) => {
-                    if (jqXHR.status !== 200) {
-                        defer.reject(`Error loading: ${moduleClassName}`);
-                    }
-
-                    var moduleClass = window.classes[moduleClassName];
+                    let moduleClass = window.classes[moduleClassName];
                     if (typeof moduleClass === 'undefined') {
                         defer.reject(`Invalid module class: ${moduleClass}`);
                         return false;
                     }
 
-                    var module                         = new moduleClass(this);
-                    this.config['modules'][moduleName] = module.settings;
+                    let module                  = new moduleClass(this.service);
+                    moduleInstances[moduleName] = module;
+                    _modules.set(this, moduleInstances);
 
-                    if (typeof module.routes == 'object') {
-                        for (var i in module.routes) {
-                            module.routes[i]['module'] = moduleName;
-                        }
-                        this.routes = $.extend(this.routes, module.routes);
+                    for (let route in module.routes) {
+                        module.routes[route].module = moduleName;
                     }
 
-                    modules[moduleName] = module;
-                    _modules.set(this, modules);
+                    this.service.settings = $.extend(this.service.settings, module.settings);
+                    this.service.routes   = $.extend(this.service.routes, module.routes);
 
-                    if (currentCount == moduleCount) {
+                    if (i == modules.length - 1) {
                         defer.resolve();
                     }
                 },
@@ -448,7 +654,6 @@ class Framework {
                     defer.reject(textStatus);
                 }
             });
-            currentCount++;
         }
 
         return defer.promise();
@@ -460,12 +665,11 @@ class Framework {
      * @param {Route} route
      */
     navigate(route) {
-
         this.route  = route;
-        var current = _current.get(this);
+        let current = _current.get(this);
 
         // call resign of previous controller
-        var destructorDefer = $.Deferred(),
+        let destructorDefer = $.Deferred(),
             destructorPromise;
 
         if (typeof current.destructor === 'function') {
@@ -479,10 +683,6 @@ class Framework {
             this.hook('preRender')
                 .always(() => {
                     this.loadController(route)
-                        .fail((errorText) => {
-                            this.notification('error', errorText);
-                            return null;
-                        })
                         .done((template) => {
                             let controllerClass = window.classes[route.controllerClassName];
 
@@ -490,20 +690,21 @@ class Framework {
                                 this.notification('error', `State controller missing ${route.controllerClassName}`);
                             }
 
-                            var controller = new controllerClass(this);
+                            let controller = new controllerClass(this.service);
 
                             controller.template = template;
                             controller.route    = route;
 
-                            var preRenderDefer = new $.Deferred();
+                            let preRenderDefer = new $.Deferred();
                             controller.preRender(preRenderDefer)
                                 .always(() => {
-                                    let view = $(this.config.viewSelector);
+                                    let view = $(this.viewSelector),
+                                        filter = this.service.getService('filter');
 
-                                    view.html(controller.template);
+                                    view.html(filter.escapeImports(controller.template));
                                     view.attr('class', route.cssNamespace);
 
-                                    var postRenderDefer = new $.Deferred();
+                                    let postRenderDefer = new $.Deferred();
                                     controller.postRender(postRenderDefer)
                                         .always(() => {
                                             _current.set(this, controller);
@@ -513,48 +714,58 @@ class Framework {
                                         });
                                 });
 
-
                             return route;
-                        });
+                        })
+                        .fail((errorText) => {
+                            this.notification('error', errorText);
+                            return null;
+                        })
                 });
         });
     }
 
     loadController(route) {
-        var defer = $.Deferred();
+        let defer = $.Deferred();
 
-        if (Util.isChrome()) {
+        if (this.service.isChrome) {
             this.loadView(route.viewFile)
                 .done((link) => {
 
                     if (typeof link[0].import != 'undefined') {
-                        var template = Util.link2html(link);
+                        let template = Util.link2html(link);
 
                         if (template == false) {
                             return defer.reject(`File ${route.viewFile} is not template`).promise();
                         }
 
-                        return defer.resolve(template).promise();
+                        return defer.resolve(template);
                     }
                 })
                 .fail(() => {
                     defer.reject(`Error loading ${route.viewFile}`);
                 });
+
+            return defer.promise();
         }
 
         // Polyfile for browser that partialy support html imports
         $.get(route.viewFile, (template) => {
-            var templateHtml = '';
+            let templateHtml = '';
 
             $($(template)).each((index, element) => {
-                switch(element.tagName) {
+                switch (element.tagName) {
                     case 'TEMPLATE':
                         templateHtml = element.innerHTML;
                         break;
+                    case 'SCRIPT':
+                        console.log(element);
+                        break;
+                    default:
+                        console.log(element);
                 }
             });
 
-            if(typeof window.classes[route.controllerClassName] != 'undefined') {
+            if (typeof window.classes[route.controllerClassName] != 'undefined') {
                 return defer.resolve(templateHtml).promise();
             }
 
@@ -567,7 +778,7 @@ class Framework {
     }
 
     loadView(href) {
-        var defer = $.Deferred(),
+        let defer = $.Deferred(),
             link  = $(`head [href='${href}']`);
 
         // ToDo: Check if this if can be avoided
@@ -593,7 +804,9 @@ class Framework {
             defer.reject(event);
         };
 
-        $('head').append($(link));
+        setTimeout(() => {
+            $('head').append($(link));
+        }, 0);
 
         return defer.promise();
     }
@@ -604,14 +817,14 @@ class Framework {
      * @param {String} hookName
      */
     hook(hookName) {
-        var deferredArray = [],
+        let deferredArray = [],
             modules       = _modules.get(this);
 
         for (let i in modules) {
             if (!modules.hasOwnProperty(i)) continue;
 
             let module = modules[i];
-            var defer  = $.Deferred();
+            let defer  = $.Deferred();
             deferredArray.push(defer);
 
             if (typeof module[hookName] === 'function') {
@@ -634,77 +847,10 @@ class Framework {
         console.log(exception);
     }
 
-    /**
-     * Raise notification to user.
-     *
-     * @param {String} type      Possible values: 'error', 'warning', 'success', 'info'
-     * @param {String} title
-     * @param {String} message
-     */
-    notification(type, message, title = null) {
+    notification(type, message, title) {
+        let notification = this.service.getService('notification');
 
-        if (!this.debug() && type === 'error') {
-            return void(0);
-        }
-
-        if (typeof window.Notification != 'undefined' && Notification.permission !== 'denied') {
-
-            if(Notification.permission === 'granted') {
-                let notification = new Notification(message);
-                return void(0);
-            }
-
-            if (Notification.permission !== 'denied') {
-                Notification.requestPermission(function (permission) {
-
-                    // Whatever the user answers, we make sure we store the information
-                    if(!('permission' in Notification)) {
-                        Notification.permission = permission;
-                    }
-
-                    // If the user is okay, let's create a notification
-                    if (permission === 'granted') {
-                        let notification = new Notification(message);
-                    }
-                });
-                return void(0);
-            }
-
-        }
-
-        if (typeof window.toastr == 'object' && typeof window['toastr'][type] == 'function') {
-            window['toastr'][type](message, title);
-            return void(0);
-        }
-
-        console.log(message);
-
-        return void(0);
-    }
-
-    /**
-     * Returns true if application is in debug mode.
-     *
-     * @returns {Boolean}
-     */
-    debug() {
-        return location.pathname.indexOf('index-dev.html') > 0;
-    }
-
-    getPartial(url) {
-        var defer = $.Deferred();
-
-        $.ajax({
-            url    : url,
-            success: function (data) {
-                defer.resolve(data);
-            },
-            error  : function () {
-                defer.reject();
-            }
-        });
-
-        return defer.promise();
+        notification.notification(type, message, title);
     }
 
 }
