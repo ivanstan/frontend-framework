@@ -11,10 +11,11 @@ class Abstract {
 }
 class ServiceContainer {
 
-    constructor(config) {
+    constructor(config, app) {
         this.settings = config.settings;
+        this.module = new ModuleService(this, config.modules);
         this.notification = new NotificationService(this);
-        this.routing = new RoutingService(this);
+        this.routing = new RoutingService(this, config.routes, app);
         this.storage = new StorageService(this);
         this.redux = new ReduxService(this);
         this.filter = new FilterService(this);
@@ -485,7 +486,6 @@ class ReduxService {
 
         this.store.subscribe(() => {
             let state = this.store.getState();
-
             this.routing.navigate(state.route);
         });
 
@@ -520,8 +520,8 @@ class FilterService {
 }
 class RoutingService {
 
-    constructor(service) {
-        this.routes = service.routes;
+    constructor(service, routes) {
+        this.routes = routes;
 
         if(Object.keys(this.routes).length === 0) {
             service.notification.info('Routing map empty');
@@ -566,64 +566,27 @@ class RoutingService {
     }
 
 }
-class ModuleService {
-
-    constructor(service) {
-
-    }
-
-}
-/**
- *
- *
- */
-let _current = new WeakMap();
 let _modules = new WeakMap();
 
-class Framework {
+class ModuleService {
 
-    /**
-     * Application bootstrap.
-     *
-     * @param config
-     */
-    constructor(config) {
-        window.classes = window.classes || {};
-        _current.set(this, {});
+    constructor(service, modules) {
+        this.modules = modules;
+        this.service = service;
         _modules.set(this, {});
-
-        this.viewSelector = config.viewSelector;
-        this.service      = new ServiceContainer(config);
-        let redux = this.service.getService('redux');
-
-        this.loadModules(config.modules)
-            .done(() => {
-                $(window).on('hashchange', () => {
-                    let action = {
-                        type: 'navigate',
-                        path: window.location.hash
-                    };
-                    redux.store.dispatch(action);
-                });
-
-                $(window).trigger('hashchange');
-            })
-            .fail((message) => {
-                this.notification('error', message);
-            });
-    };
+    }
 
     /**
      * Performs loading of modules.
      *
      * @returns {*}
      */
-    loadModules(modules) {
+    load() {
         let defer           = $.Deferred(),
             moduleInstances = _modules.get(this);
 
-        for (let i in modules) {
-            let moduleName      = modules[i],
+        for (let i in this.modules) {
+            let moduleName      = this.modules[i],
                 moduleClassName = `${Util.capitalize(moduleName)}Module`;
 
             $.ajax({
@@ -644,9 +607,9 @@ class Framework {
                     }
 
                     this.service.settings = $.extend(this.service.settings, module.settings);
-                    this.service.routes   = $.extend(this.service.routes, module.routes);
+                    this.service.routes   = $.extend(this.service.routing.routes, module.routes);
 
-                    if (i == modules.length - 1) {
+                    if (i == this.modules.length - 1) {
                         defer.resolve();
                     }
                 },
@@ -656,8 +619,76 @@ class Framework {
             });
         }
 
+        defer.fail((message) => {
+            this.service.notification.error(message);
+        });
+
         return defer.promise();
     }
+
+    /**
+     * Execute a module hook. This function will run methods name name in all modules.
+     *
+     * @param {String} name
+     */
+    hook(name) {
+        let deferredArray = [],
+            modules       = _modules.get(this);
+
+        for (let i in modules) {
+            if (!modules.hasOwnProperty(i)) continue;
+
+            let module = modules[i];
+            let defer  = $.Deferred();
+            deferredArray.push(defer);
+
+            if (typeof module[name] === 'function') {
+                try {
+                    module[name](defer);
+                } catch (exception) {
+                    this.service.notification.error(exception, 'Exception');
+                }
+            }
+        }
+
+        return $.when.apply($, deferredArray).promise();
+    }
+
+}
+/**
+ *
+ *
+ */
+let _current = new WeakMap();
+
+class Framework {
+
+    /**
+     * Application bootstrap.
+     *
+     * @param config
+     */
+    constructor(config) {
+        window.classes = window.classes || {};
+        _current.set(this, {});
+        _modules.set(this, {});
+
+        this.viewSelector = config.viewSelector;
+        this.service      = new ServiceContainer(config);
+        let redux = this.service.getService('redux');
+
+        this.service.module.load().done(() => {
+                $(window).on('hashchange', () => {
+                    let action = {
+                        type: 'navigate',
+                        path: window.location.hash
+                    };
+                    redux.store.dispatch(action);
+                });
+
+                $(window).trigger('hashchange');
+            })
+    };
 
     /**
      * Navigate to state.
@@ -665,7 +696,6 @@ class Framework {
      * @param {Route} route
      */
     navigate(route) {
-        this.route  = route;
         let current = _current.get(this);
 
         // call resign of previous controller
@@ -680,14 +710,14 @@ class Framework {
         }
 
         destructorPromise.always(() => {
-            this.hook('preRender')
+            this.service.module.hook('preRender')
                 .always(() => {
                     this.loadController(route)
                         .done((template) => {
                             let controllerClass = window.classes[route.controllerClassName];
 
                             if (typeof controllerClass == 'undefined') {
-                                this.notification('error', `State controller missing ${route.controllerClassName}`);
+                                this.service.notification.error(`State controller missing ${route.controllerClassName}`);
                             }
 
                             let controller = new controllerClass(this.service);
@@ -708,7 +738,7 @@ class Framework {
                                     controller.postRender(postRenderDefer)
                                         .always(() => {
                                             _current.set(this, controller);
-                                            this.hook('postRender').always(() => {
+                                            this.service.module.hook('postRender').always(() => {
 
                                             });
                                         });
@@ -717,7 +747,7 @@ class Framework {
                             return route;
                         })
                         .fail((errorText) => {
-                            this.notification('error', errorText);
+                            this.service.notification.error(errorText);
                             return null;
                         })
                 });
@@ -809,48 +839,6 @@ class Framework {
         }, 0);
 
         return defer.promise();
-    }
-
-    /**
-     * Execute a module hook. This function will run methods name hookName in all modules.
-     *
-     * @param {String} hookName
-     */
-    hook(hookName) {
-        let deferredArray = [],
-            modules       = _modules.get(this);
-
-        for (let i in modules) {
-            if (!modules.hasOwnProperty(i)) continue;
-
-            let module = modules[i];
-            let defer  = $.Deferred();
-            deferredArray.push(defer);
-
-            if (typeof module[hookName] === 'function') {
-                try {
-                    module[hookName](defer);
-                } catch (exception) {
-                    this.notification('error', exception, 'Exception');
-                }
-            }
-        }
-
-        return $.when.apply($, deferredArray).promise();
-    }
-
-    errorHandler(exception) {
-        exception.processError();
-
-        this.notification('error', exception.getTitle(), exception.getMessage());
-
-        console.log(exception);
-    }
-
-    notification(type, message, title) {
-        let notification = this.service.getService('notification');
-
-        notification.notification(type, message, title);
     }
 
 }

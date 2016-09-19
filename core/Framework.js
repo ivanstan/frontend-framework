@@ -20,23 +20,7 @@ class Framework {
         this.service      = new ServiceContainer(config);
         let redux = this.service.getService('redux');
 
-        //this.service.module.loadModules().done(() => {
-        //        $(window).on('hashchange', () => {
-        //            let action = {
-        //                type: 'navigate',
-        //                path: window.location.hash
-        //            };
-        //            redux.store.dispatch(action);
-        //        });
-        //
-        //        $(window).trigger('hashchange');
-        //    })
-        //    .fail((message) => {
-        //        this.notification('error', message);
-        //    });
-
-        this.loadModules(config.modules)
-            .done(() => {
+        this.service.module.load().done(() => {
                 $(window).on('hashchange', () => {
                     let action = {
                         type: 'navigate',
@@ -47,56 +31,7 @@ class Framework {
 
                 $(window).trigger('hashchange');
             })
-            .fail((message) => {
-                this.service.notification.error(message);
-            });
     };
-
-    /**
-     * Performs loading of modules.
-     *
-     * @returns {*}
-     */
-    loadModules(modules) {
-        let defer           = $.Deferred(),
-            moduleInstances = _modules.get(this);
-
-        for (let i in modules) {
-            let moduleName      = modules[i],
-                moduleClassName = `${Util.capitalize(moduleName)}Module`;
-
-            $.ajax({
-                url    : `module/${moduleName}/${moduleClassName}.js`,
-                success: (source, textStatus, jqXHR) => {
-                    let moduleClass = window.classes[moduleClassName];
-                    if (typeof moduleClass === 'undefined') {
-                        defer.reject(`Invalid module class: ${moduleClass}`);
-                        return false;
-                    }
-
-                    let module                  = new moduleClass(this.service);
-                    moduleInstances[moduleName] = module;
-                    _modules.set(this, moduleInstances);
-
-                    for (let route in module.routes) {
-                        module.routes[route].module = moduleName;
-                    }
-
-                    this.service.settings = $.extend(this.service.settings, module.settings);
-                    this.service.routes   = $.extend(this.service.routes, module.routes);
-
-                    if (i == modules.length - 1) {
-                        defer.resolve();
-                    }
-                },
-                error  : (jqXHR, textStatus, errorThrown) => {
-                    defer.reject(textStatus);
-                }
-            });
-        }
-
-        return defer.promise();
-    }
 
     /**
      * Navigate to state.
@@ -118,14 +53,14 @@ class Framework {
         }
 
         destructorPromise.always(() => {
-            this.hook('preRender')
+            this.service.module.hook('preRender')
                 .always(() => {
                     this.loadController(route)
                         .done((template) => {
                             let controllerClass = window.classes[route.controllerClassName];
 
                             if (typeof controllerClass == 'undefined') {
-                                this.notification('error', `State controller missing ${route.controllerClassName}`);
+                                this.service.notification.error(`State controller missing ${route.controllerClassName}`);
                             }
 
                             let controller = new controllerClass(this.service);
@@ -146,7 +81,7 @@ class Framework {
                                     controller.postRender(postRenderDefer)
                                         .always(() => {
                                             _current.set(this, controller);
-                                            this.hook('postRender').always(() => {
+                                            this.service.module.hook('postRender').always(() => {
 
                                             });
                                         });
@@ -155,7 +90,7 @@ class Framework {
                             return route;
                         })
                         .fail((errorText) => {
-                            this.notification('error', errorText);
+                            this.service.notification.error(errorText);
                             return null;
                         })
                 });
@@ -247,48 +182,6 @@ class Framework {
         }, 0);
 
         return defer.promise();
-    }
-
-    /**
-     * Execute a module hook. This function will run methods name hookName in all modules.
-     *
-     * @param {String} hookName
-     */
-    hook(hookName) {
-        let deferredArray = [],
-            modules       = _modules.get(this);
-
-        for (let i in modules) {
-            if (!modules.hasOwnProperty(i)) continue;
-
-            let module = modules[i];
-            let defer  = $.Deferred();
-            deferredArray.push(defer);
-
-            if (typeof module[hookName] === 'function') {
-                try {
-                    module[hookName](defer);
-                } catch (exception) {
-                    this.notification('error', exception, 'Exception');
-                }
-            }
-        }
-
-        return $.when.apply($, deferredArray).promise();
-    }
-
-    errorHandler(exception) {
-        exception.processError();
-
-        this.notification('error', exception.getTitle(), exception.getMessage());
-
-        console.log(exception);
-    }
-
-    notification(type, message, title) {
-        let notification = this.service.getService('notification');
-
-        notification.notification(type, message, title);
     }
 
 }

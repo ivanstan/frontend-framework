@@ -9,9 +9,6 @@ class ReduxService {
 
         this.store.subscribe(() => {
             let state = this.store.getState();
-
-            console.log(this.routing, state.route);
-
             this.routing.navigate(state.route);
         });
 

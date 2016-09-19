@@ -13,7 +13,7 @@ class ModuleService {
      *
      * @returns {*}
      */
-    loadModules() {
+    load() {
         let defer           = $.Deferred(),
             moduleInstances = _modules.get(this);
 
@@ -39,7 +39,7 @@ class ModuleService {
                     }
 
                     this.service.settings = $.extend(this.service.settings, module.settings);
-                    this.service.routes   = $.extend(this.service.routes, module.routes);
+                    this.service.routes   = $.extend(this.service.routing.routes, module.routes);
 
                     if (i == this.modules.length - 1) {
                         defer.resolve();
@@ -51,7 +51,39 @@ class ModuleService {
             });
         }
 
+        defer.fail((message) => {
+            this.service.notification.error(message);
+        });
+
         return defer.promise();
+    }
+
+    /**
+     * Execute a module hook. This function will run methods name name in all modules.
+     *
+     * @param {String} name
+     */
+    hook(name) {
+        let deferredArray = [],
+            modules       = _modules.get(this);
+
+        for (let i in modules) {
+            if (!modules.hasOwnProperty(i)) continue;
+
+            let module = modules[i];
+            let defer  = $.Deferred();
+            deferredArray.push(defer);
+
+            if (typeof module[name] === 'function') {
+                try {
+                    module[name](defer);
+                } catch (exception) {
+                    this.service.notification.error(exception, 'Exception');
+                }
+            }
+        }
+
+        return $.when.apply($, deferredArray).promise();
     }
 
 }

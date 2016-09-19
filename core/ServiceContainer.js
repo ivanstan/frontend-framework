@@ -1,10 +1,10 @@
 class ServiceContainer {
 
-    constructor(config) {
+    constructor(config, app) {
         this.settings = config.settings;
         this.module = new ModuleService(this, config.modules);
         this.notification = new NotificationService(this);
-        this.routing = new RoutingService(this, config.routes);
+        this.routing = new RoutingService(this, config.routes, app);
         this.storage = new StorageService(this);
         this.redux = new ReduxService(this);
         this.filter = new FilterService(this);
