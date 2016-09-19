@@ -14,23 +14,14 @@ class Framework {
     constructor(config) {
         window.classes = window.classes || {};
         _current.set(this, {});
-        _modules.set(this, {});
 
         this.viewSelector = config.viewSelector;
         this.service      = new ServiceContainer(config);
-        let redux = this.service.getService('redux');
 
         this.service.module.load().done(() => {
-                $(window).on('hashchange', () => {
-                    let action = {
-                        type: 'navigate',
-                        path: window.location.hash
-                    };
-                    redux.store.dispatch(action);
-                });
-
-                $(window).trigger('hashchange');
-            })
+            this.service.redux.init();
+            $(window).trigger('hashchange');
+        });
     };
 
     /**
@@ -71,7 +62,7 @@ class Framework {
                             let preRenderDefer = new $.Deferred();
                             controller.preRender(preRenderDefer)
                                 .always(() => {
-                                    let view = $(this.viewSelector),
+                                    let view   = $(this.viewSelector),
                                         filter = this.service.getService('filter');
 
                                     view.html(filter.escapeImports(controller.template));

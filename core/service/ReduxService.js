@@ -20,17 +20,29 @@ class ReduxService {
             state.route = this.routing.find(window.location.hash);
         }
 
+        console.log(state, action);
+
         switch(action) {
             case 'navigate':
 
                 //ToDo: dead code
 
-                console.log(state, action);
+
 
                 break;
         }
 
         return state;
+    }
+
+    init() {
+        $(window).on('hashchange', () => {
+            let action = {
+                type: 'navigate',
+                path: window.location.hash
+            };
+            this.store.dispatch(action);
+        });
     }
 
 }
