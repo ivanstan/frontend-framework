@@ -141,11 +141,7 @@ class Framework {
     }
 
     loadView(href) {
-<<<<<<< HEAD
-        var defer = $.Deferred(),
-=======
         let defer = $.Deferred(),
->>>>>>> integration
             link  = $(`head [href='${href}']`);
 
         // ToDo: Check if this if can be avoided
@@ -171,7 +167,6 @@ class Framework {
             defer.reject(event);
         };
 
-<<<<<<< HEAD
         $('head').append($(link));
 
         return defer.promise();
@@ -282,11 +277,10 @@ class Framework {
                 defer.reject();
             }
         });
-=======
+
         setTimeout(() => {
             $('head').append($(link));
         }, 0);
->>>>>>> integration
 
         return defer.promise();
     }

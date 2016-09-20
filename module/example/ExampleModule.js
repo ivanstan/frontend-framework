@@ -21,11 +21,7 @@ class ExampleModule extends Module {
             }
         };
 
-<<<<<<< HEAD
-        if (app.debug()) {
-=======
         if (this.service.debug) {
->>>>>>> integration
             console.log(this.constructor.name + ' constructor called');
         }
 
@@ -33,11 +29,7 @@ class ExampleModule extends Module {
 
     preRender(defer) {
 
-<<<<<<< HEAD
-        if (this.app.debug()) {
-=======
         if (this.service.debug) {
->>>>>>> integration
             console.log(this.constructor.name + ' preRender hook called');
         }
 
@@ -48,11 +40,7 @@ class ExampleModule extends Module {
 
         $('.docrx').docrx();
 
-<<<<<<< HEAD
-        if (this.app.debug()) {
-=======
         if (this.service.debug) {
->>>>>>> integration
             console.log(this.constructor.name + ' postRender hook called');
         }
 

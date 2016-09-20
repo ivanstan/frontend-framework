@@ -705,6 +705,117 @@ class Framework {
             defer.reject(event);
         };
 
+        $('head').append($(link));
+
+        return defer.promise();
+    }
+
+    /**
+     * Execute a module hook. This function will run methods name hookName in all modules.
+     *
+     * @param {String} hookName
+     */
+    hook(hookName) {
+        var deferredArray = [],
+            modules       = _modules.get(this);
+
+        for (let i in modules) {
+            if (!modules.hasOwnProperty(i)) continue;
+
+            let module = modules[i];
+            var defer  = $.Deferred();
+            deferredArray.push(defer);
+
+            if (typeof module[hookName] === 'function') {
+                try {
+                    module[hookName](defer);
+                } catch (exception) {
+                    this.notification('error', exception, 'Exception');
+                }
+            }
+        }
+
+        return $.when.apply($, deferredArray).promise();
+    }
+
+    errorHandler(exception) {
+        exception.processError();
+
+        this.notification('error', exception.getTitle(), exception.getMessage());
+
+        console.log(exception);
+    }
+
+    /**
+     * Raise notification to user.
+     *
+     * @param {String} type      Possible values: 'error', 'warning', 'success', 'info'
+     * @param {String} title
+     * @param {String} message
+     */
+    notification(type, message, title = null) {
+
+        if (!this.debug() && type === 'error') {
+            return void(0);
+        }
+
+        if (typeof window.Notification != 'undefined' && Notification.permission !== 'denied') {
+
+            if(Notification.permission === 'granted') {
+                let notification = new Notification(message);
+                return void(0);
+            }
+
+            if (Notification.permission !== 'denied') {
+                Notification.requestPermission(function (permission) {
+
+                    // Whatever the user answers, we make sure we store the information
+                    if(!('permission' in Notification)) {
+                        Notification.permission = permission;
+                    }
+
+                    // If the user is okay, let's create a notification
+                    if (permission === 'granted') {
+                        let notification = new Notification(message);
+                    }
+                });
+                return void(0);
+            }
+
+        }
+
+        if (typeof window.toastr == 'object' && typeof window['toastr'][type] == 'function') {
+            window['toastr'][type](message, title);
+            return void(0);
+        }
+
+        console.log(message);
+
+        return void(0);
+    }
+
+    /**
+     * Returns true if application is in debug mode.
+     *
+     * @returns {Boolean}
+     */
+    debug() {
+        return location.pathname.indexOf('index-dev.html') > 0;
+    }
+
+    getPartial(url) {
+        var defer = $.Deferred();
+
+        $.ajax({
+            url    : url,
+            success: function (data) {
+                defer.resolve(data);
+            },
+            error  : function () {
+                defer.reject();
+            }
+        });
+
         setTimeout(() => {
             $('head').append($(link));
         }, 0);
