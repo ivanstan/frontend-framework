@@ -3,7 +3,6 @@
  *
  */
 let _current = new WeakMap();
-let _modules = new WeakMap();
 
 class Framework {
 
@@ -14,87 +13,16 @@ class Framework {
      */
     constructor(config) {
         window.classes = window.classes || {};
-        this.config    = config;
-        this.routes    = {
-            '/': {
-                controller: 'default',
-                module    : 'default'
-            }
-        };
-        this.route     = {};
-
         _current.set(this, {});
-        _modules.set(this, {});
 
-        this.loadModules()
-            .done(() => {
-                $(window).trigger('hashchange');
-            })
-            .fail((message) => {
-                this.notification('error', message);
-            });
+        this.viewSelector = config.viewSelector;
+        this.service      = new ServiceContainer(config);
 
-        $(window).on('hashchange', () => {
-            this.navigate(new Route(window.location.hash, {}, this.routes));
+        this.service.module.load().done(() => {
+            this.service.redux.init();
+            $(window).trigger('hashchange');
         });
     };
-
-    /**
-     * Performs loading of modules.
-     *
-     * @returns {*}
-     */
-    loadModules() {
-        var defer   = $.Deferred();
-        var modules = _modules.get(this);
-
-        var moduleCount  = Object.keys(this.config.modules).length;
-        var currentCount = 0;
-
-        for (var moduleName in this.config.modules) {
-            if (!this.config.modules.hasOwnProperty(moduleName)) continue;
-
-            var moduleClassName = `${Util.capitalize(moduleName)}Module`;
-
-            $.ajax({
-                url    : `module/${moduleName}/${moduleClassName}.js`,
-                success: (source, textStatus, jqXHR) => {
-                    if (jqXHR.status !== 200) {
-                        defer.reject(`Error loading: ${moduleClassName}`);
-                    }
-
-                    var moduleClass = window.classes[moduleClassName];
-                    if (typeof moduleClass === 'undefined') {
-                        defer.reject(`Invalid module class: ${moduleClass}`);
-                        return false;
-                    }
-
-                    var module                         = new moduleClass(this);
-                    this.config['modules'][moduleName] = module.settings;
-
-                    if (typeof module.routes == 'object') {
-                        for (var i in module.routes) {
-                            module.routes[i]['module'] = moduleName;
-                        }
-                        this.routes = $.extend(this.routes, module.routes);
-                    }
-
-                    modules[moduleName] = module;
-                    _modules.set(this, modules);
-
-                    if (currentCount == moduleCount) {
-                        defer.resolve();
-                    }
-                },
-                error  : (jqXHR, textStatus, errorThrown) => {
-                    defer.reject(textStatus);
-                }
-            });
-            currentCount++;
-        }
-
-        return defer.promise();
-    }
 
     /**
      * Navigate to state.
@@ -102,12 +30,10 @@ class Framework {
      * @param {Route} route
      */
     navigate(route) {
-
-        this.route  = route;
-        var current = _current.get(this);
+        let current = _current.get(this);
 
         // call resign of previous controller
-        var destructorDefer = $.Deferred(),
+        let destructorDefer = $.Deferred(),
             destructorPromise;
 
         if (typeof current.destructor === 'function') {
@@ -118,85 +44,91 @@ class Framework {
         }
 
         destructorPromise.always(() => {
-            this.hook('preRender')
+            this.service.module.hook('preRender')
                 .always(() => {
                     this.loadController(route)
-                        .fail((errorText) => {
-                            this.notification('error', errorText);
-                            return null;
-                        })
                         .done((template) => {
                             let controllerClass = window.classes[route.controllerClassName];
 
                             if (typeof controllerClass == 'undefined') {
-                                this.notification('error', `State controller missing ${route.controllerClassName}`);
+                                this.service.notification.error(`State controller missing ${route.controllerClassName}`);
                             }
 
-                            var controller = new controllerClass(this);
+                            let controller = new controllerClass(this.service);
 
                             controller.template = template;
                             controller.route    = route;
 
-                            var preRenderDefer = new $.Deferred();
+                            let preRenderDefer = new $.Deferred();
                             controller.preRender(preRenderDefer)
                                 .always(() => {
-                                    let view = $(this.config.viewSelector);
+                                    let view   = $(this.viewSelector);
 
                                     view.html(controller.template);
                                     view.attr('class', route.cssNamespace);
 
-                                    var postRenderDefer = new $.Deferred();
+                                    let postRenderDefer = new $.Deferred();
                                     controller.postRender(postRenderDefer)
                                         .always(() => {
                                             _current.set(this, controller);
-                                            this.hook('postRender').always(() => {
+                                            this.service.module.hook('postRender').always(() => {
 
                                             });
                                         });
                                 });
 
-
                             return route;
-                        });
+                        })
+                        .fail((errorText) => {
+                            this.service.notification.error(errorText);
+                            return null;
+                        })
                 });
         });
     }
 
     loadController(route) {
-        var defer = $.Deferred();
+        let defer = $.Deferred();
 
-        if (Util.isChrome()) {
+        if (this.service.isChrome) {
             this.loadView(route.viewFile)
                 .done((link) => {
 
                     if (typeof link[0].import != 'undefined') {
-                        var template = Util.link2html(link);
+                        let template = Util.link2html(link);
 
                         if (template == false) {
                             return defer.reject(`File ${route.viewFile} is not template`).promise();
                         }
 
-                        return defer.resolve(template).promise();
+                        return defer.resolve(template);
                     }
                 })
                 .fail(() => {
                     defer.reject(`Error loading ${route.viewFile}`);
                 });
+
+            return defer.promise();
         }
 
         // Polyfile for browser that partialy support html imports
         $.get(route.viewFile, (template) => {
-            var templateHtml = '';
+            let templateHtml = '';
 
             $($(template)).each((index, element) => {
-                switch(element.tagName) {
+                switch (element.tagName) {
                     case 'TEMPLATE':
                         templateHtml = element.innerHTML;
                         break;
+                    case 'SCRIPT':
+                        console.log(element);
+                        break;
+                    default:
+                        console.log(element);
                 }
             });
 
-            if(typeof window.classes[route.controllerClassName] != 'undefined') {
+            if (typeof window.classes[route.controllerClassName] != 'undefined') {
                 return defer.resolve(templateHtml).promise();
             }
 
@@ -209,7 +141,11 @@ class Framework {
     }
 
     loadView(href) {
+<<<<<<< HEAD
         var defer = $.Deferred(),
+=======
+        let defer = $.Deferred(),
+>>>>>>> integration
             link  = $(`head [href='${href}']`);
 
         // ToDo: Check if this if can be avoided
@@ -231,10 +167,11 @@ class Framework {
                 console.log(event);
             }
 
-            this.notification('error', `Unable to load: ${href}`);
+            this.service.notification.error(`Unable to load: ${href}`);
             defer.reject(event);
         };
 
+<<<<<<< HEAD
         $('head').append($(link));
 
         return defer.promise();
@@ -345,6 +282,11 @@ class Framework {
                 defer.reject();
             }
         });
+=======
+        setTimeout(() => {
+            $('head').append($(link));
+        }, 0);
+>>>>>>> integration
 
         return defer.promise();
     }

@@ -1,21 +1,31 @@
 class ExampleModule extends Module {
 
-    constructor(app) {
-        super(app);
-        this.app = app;
+    constructor(service) {
+        super(service);
         this.routes = {
             '/': {
-                state: 'home'
+                "controller": "module/example/controller/HomeController.js",
+                "view"    : "module/example/view/home-view.html"
             },
             'example/tutorial': {
-                state: 'tutorial'
+                "controller": "module/example/controller/TutorialController.js",
+                "view"    : "module/example/view/tutorial-view.html"
             },
             'example/docs': {
-                state: 'docs'
+                "controller": "module/example/controller/DocsController.js",
+                "view"    : "module/example/view/docs-view.html"
+            },
+            'example/docs/services': {
+                "controller": "module/example/controller/DocsServicesController.js",
+                "view"    : "module/example/view/docs-services-view.html"
             }
         };
 
+<<<<<<< HEAD
         if (app.debug()) {
+=======
+        if (this.service.debug) {
+>>>>>>> integration
             console.log(this.constructor.name + ' constructor called');
         }
 
@@ -23,7 +33,11 @@ class ExampleModule extends Module {
 
     preRender(defer) {
 
+<<<<<<< HEAD
         if (this.app.debug()) {
+=======
+        if (this.service.debug) {
+>>>>>>> integration
             console.log(this.constructor.name + ' preRender hook called');
         }
 
@@ -34,7 +48,11 @@ class ExampleModule extends Module {
 
         $('.docrx').docrx();
 
+<<<<<<< HEAD
         if (this.app.debug()) {
+=======
+        if (this.service.debug) {
+>>>>>>> integration
             console.log(this.constructor.name + ' postRender hook called');
         }
 

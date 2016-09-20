@@ -10,8 +10,8 @@ class Module {
      *
      * @param {Framework} app   Framework instance.
      */
-    constructor(app) {
-
+    constructor(service) {
+        this.service = service;
     }
 
     /**

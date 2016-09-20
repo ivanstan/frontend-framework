@@ -42,6 +42,8 @@ for (var libraryIndex in libraries) {
     var library = libraries[libraryIndex];
     var pack = typeof libraries[libraryIndex]['package'] != 'undefined' ? libraries[libraryIndex]['package'] : true;
 
+    if(library.hasOwnProperty('active') && !library.active) continue;
+
     if (library.hasOwnProperty('stylesheet')) {
         for (fileIndex in library.stylesheet) {
             file = library.stylesheet[fileIndex];
@@ -240,6 +242,8 @@ gulp.task('docs', function () {
     var jsdox = require("jsdox");
 
     jsdox.generateForDir('./core', './module/example/assets/docs', './assets/templates', function () {
+    });
+    jsdox.generateForDir('./core/service', './module/example/assets/docs', './assets/templates', function () {
     });
 });
 
