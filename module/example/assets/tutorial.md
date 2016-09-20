@@ -74,7 +74,7 @@ graph LR;
             <td>Module views</td>
         </tr>
         <tr>
-            <td width="220px"><i class="fa fa-file-text-o" aria-hidden="true" style="padding-left: 60px;"></i> fooView.html</td>
+            <td width="220px"><i class="fa fa-file-text-o" aria-hidden="true" style="padding-left: 60px;"></i> foo-view.html</td>
             <td>State view</td>
         </tr>
         <tr>
@@ -148,18 +148,20 @@ Here is an example:
         "anotherModule": {}
       },
       "viewSelector": "#container",
-      "libs": [                                             // libraries stored localy in vendor folder should be mapped here
-        {
-          "name": "framework",                              // framework is deffined as application dependency
-          "js": ["build/frontend-framework-1.0.0.js"]
-        },
-        {
-          "name": "application",
-          "dependencies": ["framework"],                    // framework will be included before this library
-          "scss": ["module/example/styles.scss"],
-          "js": ["bootstrap.js"]
-        }
-      ]
+        "build": {
+        "libs": [                                             // libraries stored localy in vendor folder should be mapped here
+          {
+            "name": "framework",                              // framework is deffined as application dependency
+            "js": ["build/frontend-framework-1.0.0.js"]
+          },
+          {
+            "name": "application",
+            "dependencies": ["framework"],                    // framework will be included before this library
+            "scss": ["module/example/styles.scss"],
+            "js": ["bootstrap.js"]
+          }
+        ]
+      }
     }
 
 ```
@@ -181,7 +183,9 @@ with <span class="text-muted">.js</span> extension.
             this.settings = {};     // define custom module settings here
             this.routes = {         // define routes, in this example for url www.example.com/index.html#example/foo
                 "example/foo": {    // application will execute state called foo inside example module. For such state
-                    state: 'foo'    // view fooView.html will be displayed and its controller FooController.js will be
+                                    // view fooView.html will be displayed and its controller FooController.js will be
+                    controller: "module/example/controller/FooController.js",
+                    view    : "module/example/view/foo-view.html"
                 }                   // executed.
             };
         }

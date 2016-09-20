@@ -30,7 +30,7 @@ that Framework relays on.
 
 ## Load from CDN
 <code class="url" style="width: 100%; padding: 0.5em; display: table;">
-  https://cdn.rawgit.com/ivanstan/frontend-framework/master/build/frontend-framework-1.0.0.js
+  https://cdn.rawgit.com/ivanstan/frontend-framework/master/build/frontend-framework-1.2.0.js
 </code>
 
 ## MIT License
