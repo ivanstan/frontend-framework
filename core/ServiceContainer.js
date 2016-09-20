@@ -7,7 +7,6 @@ class ServiceContainer {
         this.routing = new RoutingService(this, config.routes, app);
         this.storage = new StorageService(this);
         this.redux = new ReduxService(this);
-        this.filter = new FilterService(this);
     }
 
     getService(service) {

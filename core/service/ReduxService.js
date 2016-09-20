@@ -20,8 +20,6 @@ class ReduxService {
             state.route = this.routing.find(window.location.hash);
         }
 
-        console.log(state, action);
-
         switch(action) {
             case 'navigate':
 

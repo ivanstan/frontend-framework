@@ -47,18 +47,14 @@
       {
         "name": "framework",
         "javascript": [
-          "core/Abstract.js",
           "core/ServiceContainer.js",
           "core/Util.js",
-          "core/Exception.js",
-          "core/AjaxException.js",
           "core/Module.js",
           "core/Controller.js",
           "core/Route.js",
           "core/service/NotificationService.js",
           "core/service/StorageService.js",
           "core/service/ReduxService.js",
-          "core/service/FilterService.js",
           "core/service/RoutingService.js",
           "core/service/ModuleService.js",
           "core/Framework.js"

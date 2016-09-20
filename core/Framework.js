@@ -62,10 +62,9 @@ class Framework {
                             let preRenderDefer = new $.Deferred();
                             controller.preRender(preRenderDefer)
                                 .always(() => {
-                                    let view   = $(this.viewSelector),
-                                        filter = this.service.getService('filter');
+                                    let view   = $(this.viewSelector);
 
-                                    view.html(filter.escapeImports(controller.template));
+                                    view.html(controller.template);
                                     view.attr('class', route.cssNamespace);
 
                                     let postRenderDefer = new $.Deferred();
