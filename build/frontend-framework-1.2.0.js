@@ -497,12 +497,8 @@ class RoutingService {
                             let preRenderDefer = new $.Deferred();
                             controller.preRender(preRenderDefer)
                                 .always(() => {
-                                    let view   = $(this.viewSelector);
-
-                                    console.log(view, this.viewSelector);
-
-                                    view.html(controller.template);
-                                    view.attr('class', route.cssNamespace);
+                                    this.service.view.render(controller.template);
+                                    this.service.view.setClass(route.cssNamespace);
 
                                     let postRenderDefer = new $.Deferred();
                                     controller.postRender(postRenderDefer)
@@ -718,6 +714,10 @@ class ViewService {
 
     render(template) {
         this.view.html(template);
+    }
+
+    setClass(name) {
+        this.view.attr('class', name);
     }
 
 }

@@ -174,13 +174,12 @@ gulp.task('production', function () {
 });
 
 gulp.task('framework', function () {
-    //var lib = NodeFramework.setConfig(config).getLibrary('framework');
-    //
-    //console.log(lib);
-    //
-    //gulp.src(lib.javascript)
-    //    .pipe(concat('frontend-framework-' + packageJson.version + '.js'))
-    //    .pipe(gulp.dest('./build'));
+    var config = JSON.parse(fs.readFileSync('bootstrap.json', 'utf8'));
+    var framework = NodeFramework.setConfig(config).getLibrary('framework');
+
+    gulp.src(framework.javascript)
+        .pipe(concat('frontend-framework-' + packageJson.version + '.js'))
+        .pipe(gulp.dest('./build'));
 });
 
 gulp.task('docs', function () {

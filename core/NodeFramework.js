@@ -129,9 +129,8 @@ module.exports = {
         return sorted;
     },
 
-    getLibrary: function (libs, name) {
-
-
+    getLibrary: function (name) {
+        var libs = this.resolveDependencies('dependencies');
 
         for (var i in libs) {
             if(libs[i].name == name) {
