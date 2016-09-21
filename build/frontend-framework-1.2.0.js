@@ -1,6 +1,7 @@
 class ServiceContainer {
 
     constructor(config, app) {
+        window.application.service = this;
         this.settings = config.settings;
         this.module = new ModuleService(this, config.modules);
         this.notification = new NotificationService(this);
@@ -9,6 +10,7 @@ class ServiceContainer {
         this.redux = new ReduxService(this);
         this.system = new SystemService(this);
         this.view = new ViewService(this, config);
+        this.bind = new BindService(this);
     }
 
     getService(service) {
@@ -355,24 +357,29 @@ class ReduxService {
         this.service = service;
         this.routing = service.getService('routing');
 
-        this.store = Redux.createStore(() => {
-            return this.changeState();
-        });
+        this.store = Redux.createStore(this.changeState);
 
         this.store.subscribe(() => {
             let state = this.store.getState();
             this.routing.navigate(state.route);
         });
-
     }
 
     changeState(state, action) {
-        if (typeof state === 'undefined') {
-            var state = {};
-            state.route = this.routing.find(window.location.hash);
+        let service = window.application.service;
+
+        switch (action.type) {
+            case '@@redux/INIT':
+                var state = {};
+                state.route = service.routing.find(window.location.hash);
+                break;
+            case 'navigate':
+                state.route = service.routing.find(action.path);
+                break;
         }
 
-        let modules = this.service.module.getModules();
+        // execute changeState redux hook
+        let modules = service.module.getModules();
         for (let i in modules) {
             if (!modules.hasOwnProperty(i)) continue;
 
@@ -382,7 +389,7 @@ class ReduxService {
             try {
                 state = module['changeState'](state, action);
             } catch (exception) {
-                this.service.notification.error(exception, 'Exception');
+                service.notification.error(exception, 'Exception');
             }
         }
 
@@ -400,7 +407,6 @@ class ReduxService {
     }
 
 }
-let _current = new WeakMap();
 /**
  * Routing service
  */
@@ -413,26 +419,21 @@ class RoutingService {
      * @param routes
      */
     constructor(service, routes) {
-
-        console.log(service.settings);
-
-        this.routes = routes;
+        this.routes  = routes;
         this.service = service;
-        this.viewSelector = service.settings;
-        _current.set(this, {});
 
-        if(Object.keys(this.routes).length === 0) {
+        if (Object.keys(this.routes).length === 0) {
             service.notification.info('Routing map empty');
         }
     }
 
     find(uri) {
-        let route = new Route(uri),
+        let route   = new Route(uri),
             matched = this.routes[route.uri] ? this.routes[route.uri] : this.routes['/'];
 
         route.controller = matched.controller;
-        route.module = matched.module;
-        route.view = matched.view;
+        route.module     = matched.module;
+        route.view       = matched.view;
 
         return this.processRoute(route);
     }
@@ -440,17 +441,17 @@ class RoutingService {
     processRoute(matched) {
         matched.controllerClassName = false;
 
-        if(typeof matched.controller != 'undefined') {
+        if (typeof matched.controller != 'undefined') {
             let path = Util.pathInfo(matched.controller);
 
             matched.controllerClassName = path.basename;
-            matched.controllerFile = matched.controller;
+            matched.controllerFile      = matched.controller;
 
             var state = matched.controllerClassName.toLowerCase().replace('controller', '');
         }
 
         matched.cssNamespace = `${matched.module}-${state}-page`;
-        matched.viewFile = matched.view;
+        matched.viewFile     = matched.view;
 
         return matched;
     }
@@ -461,11 +462,11 @@ class RoutingService {
      * @param {Route} route
      */
     navigate(route) {
-        if(typeof route == 'string') {
+        if (typeof route == 'string') {
             route = this.find(route);
         }
 
-        let current = _current.get(this);
+        let current = window.application.current;
 
         // call resign of previous controller
         let destructorDefer = $.Deferred(),
@@ -497,13 +498,15 @@ class RoutingService {
                             let preRenderDefer = new $.Deferred();
                             controller.preRender(preRenderDefer)
                                 .always(() => {
+                                    this.service.bind.toController(controller);
+
                                     this.service.view.render(controller.template);
                                     this.service.view.setClass(route.cssNamespace);
 
                                     let postRenderDefer = new $.Deferred();
                                     controller.postRender(postRenderDefer)
                                         .always(() => {
-                                            _current.set(this, controller);
+                                            window.application.current = controller;
                                             this.service.module.hook('postRender').always(() => {
 
                                             });
@@ -521,14 +524,11 @@ class RoutingService {
     }
 
 }
-let _modules = new WeakMap();
-
 class ModuleService {
 
     constructor(service, modules) {
         this.modules = modules;
         this.service = service;
-        _modules.set(this, {});
     }
 
     /**
@@ -538,7 +538,7 @@ class ModuleService {
      */
     load() {
         let defer           = $.Deferred(),
-            moduleInstances = _modules.get(this);
+            moduleInstances = this.getModules();
 
         for (let i in this.modules) {
             let moduleName      = this.modules[i],
@@ -554,8 +554,7 @@ class ModuleService {
                     }
 
                     let module                  = new moduleClass(this.service);
-                    moduleInstances[moduleName] = module;
-                    _modules.set(this, moduleInstances);
+                    this.setModule(moduleName, module);
 
                     for (let route in module.routes) {
                         module.routes[route].module = moduleName;
@@ -582,7 +581,11 @@ class ModuleService {
     }
 
     getModules() {
-        return _modules.get(this);
+        return window.application.modules || {};
+    }
+
+    setModule(name, instance) {
+        window.application.modules[name] = instance;
     }
 
     /**
@@ -592,7 +595,7 @@ class ModuleService {
      */
     hook(name) {
         let deferredArray = [],
-            modules       = _modules.get(this);
+            modules       = this.getModules();
 
         for (let i in modules) {
             if (!modules.hasOwnProperty(i)) continue;
@@ -721,6 +724,31 @@ class ViewService {
     }
 
 }
+class BindService {
+
+    constructor(service) {
+        this.service = service;
+    }
+
+    toController(controller) {
+        var ignore = ['service', '_template', 'route'],
+            props  = Object.getOwnPropertyNames(controller);
+
+        var data = {},
+            values = {};
+
+        for (let i in props) {
+            if(!props.hasOwnProperty(i) || ignore.indexOf(props[i]) > -1) continue;
+
+            data[props[i]] = `[data-field="${props[i]}"]`;
+            values[props[i]] = controller[props[i]];
+
+        }
+
+        this.bound = Bind(values, data);
+    }
+
+}
 class Framework {
 
     /**
@@ -730,8 +758,12 @@ class Framework {
      */
     constructor(config) {
         window.classes = window.classes || {};
-        this.service      = new ServiceContainer(config);
-
+        window.application = {
+            framework: this,
+            modules: {},
+            current: {}
+        };
+        this.service   = new ServiceContainer(config);
         this.service.module.load().done(() => {
             this.service.redux.init();
             $(window).trigger('hashchange');

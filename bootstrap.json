@@ -40,6 +40,10 @@
         "javascript": ["http://cdnjs.cloudflare.com/ajax/libs/redux/3.6.0/redux.min.js"]
       },
       {
+        "name": "bind",
+        "javascript": ["https://cdn.rawgit.com/remy/bind.js/master/dist/bind.min.js"]
+      },
+      {
         "name": "docrx",
         "javascript": ["vendor/docrx/build/docrx.min.js"],
         "stylesheet": ["vendor/docrx/build/docrx.min.css"]
@@ -59,6 +63,7 @@
           "core/service/ModuleService.js",
           "core/service/SystemService.js",
           "core/service/ViewService.js",
+          "core/service/BindService.js",
           "core/Framework.js"
         ]
       },

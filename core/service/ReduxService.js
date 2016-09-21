@@ -4,24 +4,29 @@ class ReduxService {
         this.service = service;
         this.routing = service.getService('routing');
 
-        this.store = Redux.createStore(() => {
-            return this.changeState();
-        });
+        this.store = Redux.createStore(this.changeState);
 
         this.store.subscribe(() => {
             let state = this.store.getState();
             this.routing.navigate(state.route);
         });
-
     }
 
     changeState(state, action) {
-        if (typeof state === 'undefined') {
-            var state = {};
-            state.route = this.routing.find(window.location.hash);
+        let service = window.application.service;
+
+        switch (action.type) {
+            case '@@redux/INIT':
+                var state = {};
+                state.route = service.routing.find(window.location.hash);
+                break;
+            case 'navigate':
+                state.route = service.routing.find(action.path);
+                break;
         }
 
-        let modules = this.service.module.getModules();
+        // execute changeState redux hook
+        let modules = service.module.getModules();
         for (let i in modules) {
             if (!modules.hasOwnProperty(i)) continue;
 
@@ -31,7 +36,7 @@ class ReduxService {
             try {
                 state = module['changeState'](state, action);
             } catch (exception) {
-                this.service.notification.error(exception, 'Exception');
+                service.notification.error(exception, 'Exception');
             }
         }
 

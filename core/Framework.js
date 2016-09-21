@@ -7,8 +7,12 @@ class Framework {
      */
     constructor(config) {
         window.classes = window.classes || {};
-        this.service      = new ServiceContainer(config);
-
+        window.application = {
+            framework: this,
+            modules: {},
+            current: {}
+        };
+        this.service   = new ServiceContainer(config);
         this.service.module.load().done(() => {
             this.service.redux.init();
             $(window).trigger('hashchange');

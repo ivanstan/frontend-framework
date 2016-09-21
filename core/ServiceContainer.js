@@ -1,6 +1,7 @@
 class ServiceContainer {
 
     constructor(config, app) {
+        window.application.service = this;
         this.settings = config.settings;
         this.module = new ModuleService(this, config.modules);
         this.notification = new NotificationService(this);
@@ -9,6 +10,7 @@ class ServiceContainer {
         this.redux = new ReduxService(this);
         this.system = new SystemService(this);
         this.view = new ViewService(this, config);
+        this.bind = new BindService(this);
     }
 
     getService(service) {

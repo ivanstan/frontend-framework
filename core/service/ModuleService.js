@@ -1,11 +1,8 @@
-let _modules = new WeakMap();
-
 class ModuleService {
 
     constructor(service, modules) {
         this.modules = modules;
         this.service = service;
-        _modules.set(this, {});
     }
 
     /**
@@ -15,7 +12,7 @@ class ModuleService {
      */
     load() {
         let defer           = $.Deferred(),
-            moduleInstances = _modules.get(this);
+            moduleInstances = this.getModules();
 
         for (let i in this.modules) {
             let moduleName      = this.modules[i],
@@ -31,8 +28,7 @@ class ModuleService {
                     }
 
                     let module                  = new moduleClass(this.service);
-                    moduleInstances[moduleName] = module;
-                    _modules.set(this, moduleInstances);
+                    this.setModule(moduleName, module);
 
                     for (let route in module.routes) {
                         module.routes[route].module = moduleName;
@@ -59,7 +55,11 @@ class ModuleService {
     }
 
     getModules() {
-        return _modules.get(this);
+        return window.application.modules || {};
+    }
+
+    setModule(name, instance) {
+        window.application.modules[name] = instance;
     }
 
     /**
@@ -69,7 +69,7 @@ class ModuleService {
      */
     hook(name) {
         let deferredArray = [],
-            modules       = _modules.get(this);
+            modules       = this.getModules();
 
         for (let i in modules) {
             if (!modules.hasOwnProperty(i)) continue;

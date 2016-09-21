@@ -43,10 +43,10 @@
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/js/bootstrap.min.js"></script>
+<script src="//cdn.rawgit.com/remy/bind.js/master/dist/bind.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/tether/1.3.2/js/tether.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/redux/3.6.0/redux.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.1.1/js/mdb.min.js"></script>
-<script src="vendor/docrx/build/docrx.min.js"></script>
 <script src="core/ServiceContainer.js"></script>
 <script src="core/Util.js"></script>
 <script src="core/Module.js"></script>
@@ -59,13 +59,13 @@
 <script src="core/service/ModuleService.js"></script>
 <script src="core/service/SystemService.js"></script>
 <script src="core/service/ViewService.js"></script>
+<script src="core/service/BindService.js"></script>
 <script src="core/Framework.js"></script>
+<script src="vendor/docrx/build/docrx.min.js"></script>
 
 
 <script>
-    'use strict';
-
-    var App = new Framework({"modules":["example"],"settings":{},"routes":{"/":{"controller":"module/example/controller/HomeController.js","view":"module/example/view/home-view.html"}},"viewSelector":"#container"});
+    (new Framework({"modules":["example"],"settings":{},"routes":{"/":{"controller":"module/example/controller/HomeController.js","view":"module/example/view/home-view.html"}},"viewSelector":"#container"}));
 </script>
 
 <a href="https://github.com/ivanstan/frontend-framework"><img

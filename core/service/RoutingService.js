@@ -1,4 +1,3 @@
-let _current = new WeakMap();
 /**
  * Routing service
  */
@@ -11,26 +10,21 @@ class RoutingService {
      * @param routes
      */
     constructor(service, routes) {
-
-        console.log(service.settings);
-
-        this.routes = routes;
+        this.routes  = routes;
         this.service = service;
-        this.viewSelector = service.settings;
-        _current.set(this, {});
 
-        if(Object.keys(this.routes).length === 0) {
+        if (Object.keys(this.routes).length === 0) {
             service.notification.info('Routing map empty');
         }
     }
 
     find(uri) {
-        let route = new Route(uri),
+        let route   = new Route(uri),
             matched = this.routes[route.uri] ? this.routes[route.uri] : this.routes['/'];
 
         route.controller = matched.controller;
-        route.module = matched.module;
-        route.view = matched.view;
+        route.module     = matched.module;
+        route.view       = matched.view;
 
         return this.processRoute(route);
     }
@@ -38,17 +32,17 @@ class RoutingService {
     processRoute(matched) {
         matched.controllerClassName = false;
 
-        if(typeof matched.controller != 'undefined') {
+        if (typeof matched.controller != 'undefined') {
             let path = Util.pathInfo(matched.controller);
 
             matched.controllerClassName = path.basename;
-            matched.controllerFile = matched.controller;
+            matched.controllerFile      = matched.controller;
 
             var state = matched.controllerClassName.toLowerCase().replace('controller', '');
         }
 
         matched.cssNamespace = `${matched.module}-${state}-page`;
-        matched.viewFile = matched.view;
+        matched.viewFile     = matched.view;
 
         return matched;
     }
@@ -59,11 +53,11 @@ class RoutingService {
      * @param {Route} route
      */
     navigate(route) {
-        if(typeof route == 'string') {
+        if (typeof route == 'string') {
             route = this.find(route);
         }
 
-        let current = _current.get(this);
+        let current = window.application.current;
 
         // call resign of previous controller
         let destructorDefer = $.Deferred(),
@@ -97,11 +91,12 @@ class RoutingService {
                                 .always(() => {
                                     this.service.view.render(controller.template);
                                     this.service.view.setClass(route.cssNamespace);
+                                    this.service.bind.toController(controller);
 
                                     let postRenderDefer = new $.Deferred();
                                     controller.postRender(postRenderDefer)
                                         .always(() => {
-                                            _current.set(this, controller);
+                                            window.application.current = controller;
                                             this.service.module.hook('postRender').always(() => {
 
                                             });
