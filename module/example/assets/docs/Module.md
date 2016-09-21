@@ -39,6 +39,18 @@ Executed once state rendering is complete.
 
 **Returns**: `Promise`
 
+### Module.changeState(state, action) 
+
+Class Constructor.
+
+**Parameters**
+
+**state**: , Class Constructor.
+
+**action**: , Class Constructor.
+
+**Returns**: `*`
+
 
 
 * * *

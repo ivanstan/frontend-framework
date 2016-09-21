@@ -7,6 +7,8 @@ class ServiceContainer {
         this.routing = new RoutingService(this, config.routes, app);
         this.storage = new StorageService(this);
         this.redux = new ReduxService(this);
+        this.system = new SystemService(this);
+        this.view = new ViewService(this, config);
     }
 
     getService(service) {
@@ -28,22 +30,6 @@ class ServiceContainer {
 
     get isChrome() {
         return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-    }
-
-    getPartial(url) {
-        let defer = $.Deferred();
-
-        $.ajax({
-            url    : url,
-            success: (data) => {
-                defer.resolve(data);
-            },
-            error  : () => {
-                defer.reject();
-            }
-        });
-
-        return defer.promise();
     }
 
 }

@@ -57,6 +57,8 @@
           "core/service/ReduxService.js",
           "core/service/RoutingService.js",
           "core/service/ModuleService.js",
+          "core/service/SystemService.js",
+          "core/service/ViewService.js",
           "core/Framework.js"
         ]
       },

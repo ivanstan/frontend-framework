@@ -58,6 +58,10 @@ class ModuleService {
         return defer.promise();
     }
 
+    getModules() {
+        return _modules.get(this);
+    }
+
     /**
      * Execute a module hook. This function will run methods name name in all modules.
      *
@@ -71,15 +75,15 @@ class ModuleService {
             if (!modules.hasOwnProperty(i)) continue;
 
             let module = modules[i];
+
+            if (typeof module[name] !== 'function') continue;
+
             let defer  = $.Deferred();
             deferredArray.push(defer);
-
-            if (typeof module[name] === 'function') {
-                try {
-                    module[name](defer);
-                } catch (exception) {
-                    this.service.notification.error(exception, 'Exception');
-                }
+            try {
+                module[name](defer);
+            } catch (exception) {
+                this.service.notification.error(exception, 'Exception');
             }
         }
 

@@ -8,7 +8,7 @@ class Module {
     /**
      * Class Constructor.
      *
-     * @param {Framework} app   Framework instance.
+     * @param {Framework} service   Framework instance.
      */
     constructor(service) {
         this.service = service;
@@ -34,6 +34,16 @@ class Module {
      */
     postRender(defer) {
         return defer.resolve().promise();
+    }
+
+    /**
+     *
+     * @param state
+     * @param action
+     * @returns {*}
+     */
+    changeState(state, action) {
+        return state;
     }
 
 }

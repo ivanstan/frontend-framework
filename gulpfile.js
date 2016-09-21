@@ -17,77 +17,20 @@ gulp.remote = require('gulp-remote-src');
 gulp.merge = require('merge2');
 
 var config = JSON.parse(fs.readFileSync('bootstrap.json', 'utf8'));
-NodeFramework.setConfig(config);
-var libraries = NodeFramework.resolveDependencies('dependencies');
+var resources = NodeFramework.setConfig(config).getResources();
 
-var fileIndex,
-    file;
-
-var remoteInternalStylesheet = [],
-    remoteExternalStylesheet = [],
-    localInternalStylesheet = [],
-    localExternalStylesheet = [];
-
-var remoteInternalJavascript = [],
-    remoteExternalJavascript = [],
-    localInternalJavascript = [],
-    localExternalJavascript = [];
-
-var localJavascript = [],
-    localStylesheet = [],
-    remoteStylesheet = [],
-    remoteJavascript = [];
-
-for (var libraryIndex in libraries) {
-    var library = libraries[libraryIndex];
-    var pack = typeof libraries[libraryIndex]['package'] != 'undefined' ? libraries[libraryIndex]['package'] : true;
-
-    if(library.hasOwnProperty('active') && !library.active) continue;
-
-    if (library.hasOwnProperty('stylesheet')) {
-        for (fileIndex in library.stylesheet) {
-            file = library.stylesheet[fileIndex];
-
-            if (file.indexOf('//') == -1) {
-                if (pack) {
-                    localInternalStylesheet.push(file);
-                } else {
-                    localInternalStylesheet.push(file);
-                }
-                localStylesheet.push(file);
-            } else {
-                if (pack) {
-                    remoteInternalStylesheet.push(file);
-                } else {
-                    remoteExternalStylesheet.push(file);
-                }
-                remoteStylesheet.push(file);
-            }
-        }
-    }
-
-    if (library.hasOwnProperty('javascript')) {
-        for (fileIndex in library.javascript) {
-            file = library.javascript[fileIndex];
-
-            if (file.indexOf('//') == -1) {
-                if (pack) {
-                    localInternalJavascript.push(file);
-                } else {
-                    localExternalJavascript.push(file);
-                }
-                localJavascript.push(file);
-            } else {
-                if (pack) {
-                    remoteInternalJavascript.push(file);
-                } else {
-                    remoteExternalJavascript.push(file);
-                }
-                remoteJavascript.push(file);
-            }
-        }
-    }
-}
+var remoteInternalStylesheet = resources['remoteInternalStylesheet'],
+    remoteExternalStylesheet = resources['remoteExternalStylesheet'],
+    localInternalStylesheet = resources['localInternalStylesheet'],
+    localExternalStylesheet = resources['localExternalStylesheet'];
+var remoteInternalJavascript = resources['remoteInternalJavascript'],
+    remoteExternalJavascript = resources['remoteExternalJavascript'],
+    localInternalJavascript = resources['localInternalJavascript'],
+    localExternalJavascript = resources['localExternalJavascript'];
+var localJavascript = resources['localJavascript'],
+    localStylesheet = resources['localStylesheet'],
+    remoteStylesheet = resources['remoteStylesheet'],
+    remoteJavascript = resources['remoteJavascript'];
 
 gulp.task('stylesheet', function () {
 
@@ -231,11 +174,13 @@ gulp.task('production', function () {
 });
 
 gulp.task('framework', function () {
-    var lib = NodeFramework.getLibrary(libraries, 'framework');
-
-    gulp.src(lib.javascript)
-        .pipe(concat('frontend-framework-' + packageJson.version + '.js'))
-        .pipe(gulp.dest('./build'));
+    //var lib = NodeFramework.setConfig(config).getLibrary('framework');
+    //
+    //console.log(lib);
+    //
+    //gulp.src(lib.javascript)
+    //    .pipe(concat('frontend-framework-' + packageJson.version + '.js'))
+    //    .pipe(gulp.dest('./build'));
 });
 
 gulp.task('docs', function () {

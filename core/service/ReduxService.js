@@ -1,6 +1,7 @@
 class ReduxService {
 
     constructor(service) {
+        this.service = service;
         this.routing = service.getService('routing');
 
         this.store = Redux.createStore(() => {
@@ -20,14 +21,18 @@ class ReduxService {
             state.route = this.routing.find(window.location.hash);
         }
 
-        switch(action) {
-            case 'navigate':
+        let modules = this.service.module.getModules();
+        for (let i in modules) {
+            if (!modules.hasOwnProperty(i)) continue;
 
-                //ToDo: dead code
+            let module = modules[i];
+            if (typeof module['changeState'] !== 'function') continue;
 
-
-
-                break;
+            try {
+                state = module['changeState'](state, action);
+            } catch (exception) {
+                this.service.notification.error(exception, 'Exception');
+            }
         }
 
         return state;

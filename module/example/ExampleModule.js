@@ -47,6 +47,15 @@ class ExampleModule extends Module {
         return super.postRender(defer);
     }
 
+    changeState(state, action) {
+
+        if(this.service.debug) {
+            console.log(this.constructor.name + ' changeState hook called');
+        }
+
+        return state;
+    }
+
 }
 
 window.classes["ExampleModule"] = ExampleModule;

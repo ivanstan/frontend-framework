@@ -7,6 +7,8 @@ class ServiceContainer {
         this.routing = new RoutingService(this, config.routes, app);
         this.storage = new StorageService(this);
         this.redux = new ReduxService(this);
+        this.system = new SystemService(this);
+        this.view = new ViewService(this, config);
     }
 
     getService(service) {
@@ -28,22 +30,6 @@ class ServiceContainer {
 
     get isChrome() {
         return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-    }
-
-    getPartial(url) {
-        let defer = $.Deferred();
-
-        $.ajax({
-            url    : url,
-            success: (data) => {
-                defer.resolve(data);
-            },
-            error  : () => {
-                defer.reject();
-            }
-        });
-
-        return defer.promise();
     }
 
 }
@@ -102,7 +88,7 @@ class Module {
     /**
      * Class Constructor.
      *
-     * @param {Framework} app   Framework instance.
+     * @param {Framework} service   Framework instance.
      */
     constructor(service) {
         this.service = service;
@@ -128,6 +114,16 @@ class Module {
      */
     postRender(defer) {
         return defer.resolve().promise();
+    }
+
+    /**
+     *
+     * @param state
+     * @param action
+     * @returns {*}
+     */
+    changeState(state, action) {
+        return state;
     }
 
 }
@@ -356,6 +352,7 @@ class StorageService {
 class ReduxService {
 
     constructor(service) {
+        this.service = service;
         this.routing = service.getService('routing');
 
         this.store = Redux.createStore(() => {
@@ -375,14 +372,18 @@ class ReduxService {
             state.route = this.routing.find(window.location.hash);
         }
 
-        switch(action) {
-            case 'navigate':
+        let modules = this.service.module.getModules();
+        for (let i in modules) {
+            if (!modules.hasOwnProperty(i)) continue;
 
-                //ToDo: dead code
+            let module = modules[i];
+            if (typeof module['changeState'] !== 'function') continue;
 
-
-
-                break;
+            try {
+                state = module['changeState'](state, action);
+            } catch (exception) {
+                this.service.notification.error(exception, 'Exception');
+            }
         }
 
         return state;
@@ -399,10 +400,26 @@ class ReduxService {
     }
 
 }
+let _current = new WeakMap();
+/**
+ * Routing service
+ */
 class RoutingService {
 
+    /**
+     * @constructor
+     *
+     * @param service
+     * @param routes
+     */
     constructor(service, routes) {
+
+        console.log(service.settings);
+
         this.routes = routes;
+        this.service = service;
+        this.viewSelector = service.settings;
+        _current.set(this, {});
 
         if(Object.keys(this.routes).length === 0) {
             service.notification.info('Routing map empty');
@@ -438,12 +455,73 @@ class RoutingService {
         return matched;
     }
 
+    /**
+     * Navigate to state.
+     *
+     * @param {Route} route
+     */
     navigate(route) {
         if(typeof route == 'string') {
             route = this.find(route);
         }
 
-        App.navigate(route);
+        let current = _current.get(this);
+
+        // call resign of previous controller
+        let destructorDefer = $.Deferred(),
+            destructorPromise;
+
+        if (typeof current.destructor === 'function') {
+            destructorPromise = current.destructor(destructorDefer);
+        } else {
+            destructorDefer.resolve();
+            destructorPromise = destructorDefer.promise();
+        }
+
+        destructorPromise.always(() => {
+            this.service.module.hook('preRender')
+                .always(() => {
+                    this.service.system.loadController(route)
+                        .done((template) => {
+                            let controllerClass = window.classes[route.controllerClassName];
+
+                            if (typeof controllerClass == 'undefined') {
+                                this.service.notification.error(`State controller missing ${route.controllerClassName}`);
+                            }
+
+                            let controller = new controllerClass(this.service);
+
+                            controller.template = template;
+                            controller.route    = route;
+
+                            let preRenderDefer = new $.Deferred();
+                            controller.preRender(preRenderDefer)
+                                .always(() => {
+                                    let view   = $(this.viewSelector);
+
+                                    console.log(view, this.viewSelector);
+
+                                    view.html(controller.template);
+                                    view.attr('class', route.cssNamespace);
+
+                                    let postRenderDefer = new $.Deferred();
+                                    controller.postRender(postRenderDefer)
+                                        .always(() => {
+                                            _current.set(this, controller);
+                                            this.service.module.hook('postRender').always(() => {
+
+                                            });
+                                        });
+                                });
+
+                            return route;
+                        })
+                        .fail((errorText) => {
+                            this.service.notification.error(errorText);
+                            return null;
+                        })
+                });
+        });
     }
 
 }
@@ -507,6 +585,10 @@ class ModuleService {
         return defer.promise();
     }
 
+    getModules() {
+        return _modules.get(this);
+    }
+
     /**
      * Execute a module hook. This function will run methods name name in all modules.
      *
@@ -520,15 +602,15 @@ class ModuleService {
             if (!modules.hasOwnProperty(i)) continue;
 
             let module = modules[i];
+
+            if (typeof module[name] !== 'function') continue;
+
             let defer  = $.Deferred();
             deferredArray.push(defer);
-
-            if (typeof module[name] === 'function') {
-                try {
-                    module[name](defer);
-                } catch (exception) {
-                    this.service.notification.error(exception, 'Exception');
-                }
+            try {
+                module[name](defer);
+            } catch (exception) {
+                this.service.notification.error(exception, 'Exception');
             }
         }
 
@@ -536,93 +618,10 @@ class ModuleService {
     }
 
 }
-/**
- *
- *
- */
-let _current = new WeakMap();
+class SystemService {
 
-class Framework {
-
-    /**
-     * Application bootstrap.
-     *
-     * @param config
-     */
-    constructor(config) {
-        window.classes = window.classes || {};
-        _current.set(this, {});
-
-        this.viewSelector = config.viewSelector;
-        this.service      = new ServiceContainer(config);
-
-        this.service.module.load().done(() => {
-            this.service.redux.init();
-            $(window).trigger('hashchange');
-        });
-    };
-
-    /**
-     * Navigate to state.
-     *
-     * @param {Route} route
-     */
-    navigate(route) {
-        let current = _current.get(this);
-
-        // call resign of previous controller
-        let destructorDefer = $.Deferred(),
-            destructorPromise;
-
-        if (typeof current.destructor === 'function') {
-            destructorPromise = current.destructor(destructorDefer);
-        } else {
-            destructorDefer.resolve();
-            destructorPromise = destructorDefer.promise();
-        }
-
-        destructorPromise.always(() => {
-            this.service.module.hook('preRender')
-                .always(() => {
-                    this.loadController(route)
-                        .done((template) => {
-                            let controllerClass = window.classes[route.controllerClassName];
-
-                            if (typeof controllerClass == 'undefined') {
-                                this.service.notification.error(`State controller missing ${route.controllerClassName}`);
-                            }
-
-                            let controller = new controllerClass(this.service);
-
-                            controller.template = template;
-                            controller.route    = route;
-
-                            let preRenderDefer = new $.Deferred();
-                            controller.preRender(preRenderDefer)
-                                .always(() => {
-                                    let view   = $(this.viewSelector);
-
-                                    view.html(controller.template);
-                                    view.attr('class', route.cssNamespace);
-
-                                    let postRenderDefer = new $.Deferred();
-                                    controller.postRender(postRenderDefer)
-                                        .always(() => {
-                                            _current.set(this, controller);
-                                            this.service.module.hook('postRender').always(() => {
-
-                                            });
-                                        });
-                                });
-
-                            return route;
-                        })
-                        .fail((errorText) => {
-                            this.service.notification.error(errorText);
-                            return null;
-                        })
-                });
-        });
+    constructor(service) {
+        this.service = service;
     }
 
     loadController(route) {
@@ -710,117 +709,32 @@ class Framework {
         return defer.promise();
     }
 
-    /**
-     * Execute a module hook. This function will run methods name hookName in all modules.
-     *
-     * @param {String} hookName
-     */
-    hook(hookName) {
-        var deferredArray = [],
-            modules       = _modules.get(this);
+}
+class ViewService {
 
-        for (let i in modules) {
-            if (!modules.hasOwnProperty(i)) continue;
-
-            let module = modules[i];
-            var defer  = $.Deferred();
-            deferredArray.push(defer);
-
-            if (typeof module[hookName] === 'function') {
-                try {
-                    module[hookName](defer);
-                } catch (exception) {
-                    this.notification('error', exception, 'Exception');
-                }
-            }
-        }
-
-        return $.when.apply($, deferredArray).promise();
+    constructor(service, config) {
+        this.view = $(config.viewSelector);
     }
 
-    errorHandler(exception) {
-        exception.processError();
-
-        this.notification('error', exception.getTitle(), exception.getMessage());
-
-        console.log(exception);
+    render(template) {
+        this.view.html(template);
     }
+
+}
+class Framework {
 
     /**
-     * Raise notification to user.
+     * Application bootstrap.
      *
-     * @param {String} type      Possible values: 'error', 'warning', 'success', 'info'
-     * @param {String} title
-     * @param {String} message
+     * @param config
      */
-    notification(type, message, title = null) {
+    constructor(config) {
+        window.classes = window.classes || {};
+        this.service      = new ServiceContainer(config);
 
-        if (!this.debug() && type === 'error') {
-            return void(0);
-        }
-
-        if (typeof window.Notification != 'undefined' && Notification.permission !== 'denied') {
-
-            if(Notification.permission === 'granted') {
-                let notification = new Notification(message);
-                return void(0);
-            }
-
-            if (Notification.permission !== 'denied') {
-                Notification.requestPermission(function (permission) {
-
-                    // Whatever the user answers, we make sure we store the information
-                    if(!('permission' in Notification)) {
-                        Notification.permission = permission;
-                    }
-
-                    // If the user is okay, let's create a notification
-                    if (permission === 'granted') {
-                        let notification = new Notification(message);
-                    }
-                });
-                return void(0);
-            }
-
-        }
-
-        if (typeof window.toastr == 'object' && typeof window['toastr'][type] == 'function') {
-            window['toastr'][type](message, title);
-            return void(0);
-        }
-
-        console.log(message);
-
-        return void(0);
-    }
-
-    /**
-     * Returns true if application is in debug mode.
-     *
-     * @returns {Boolean}
-     */
-    debug() {
-        return location.pathname.indexOf('index-dev.html') > 0;
-    }
-
-    getPartial(url) {
-        var defer = $.Deferred();
-
-        $.ajax({
-            url    : url,
-            success: function (data) {
-                defer.resolve(data);
-            },
-            error  : function () {
-                defer.reject();
-            }
+        this.service.module.load().done(() => {
+            this.service.redux.init();
+            $(window).trigger('hashchange');
         });
-
-        setTimeout(() => {
-            $('head').append($(link));
-        }, 0);
-
-        return defer.promise();
-    }
-
+    };
 }
